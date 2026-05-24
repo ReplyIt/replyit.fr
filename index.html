@@ -45,6 +45,7 @@
       --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
       --max-w: 72rem;
       --nav-h: 4.5rem;
+      --tricolor-h: 4px;
       --radius: 0.75rem;
       --radius-lg: 1.25rem;
       --transition: 200ms ease;
@@ -76,7 +77,7 @@
 
     html {
       scroll-behavior: smooth;
-      scroll-padding-top: calc(var(--nav-h) + 1.5rem);
+      scroll-padding-top: calc(var(--tricolor-h) + var(--nav-h) + 1.5rem);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -182,10 +183,32 @@
     @media (min-width: 768px) { .container { padding: 0 1.5rem; } }
     @media (min-width: 1024px) { .container { padding: 0 2rem; } }
 
+    /* —— Bande tricolore —— */
+    .tricolor-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 201;
+      height: var(--tricolor-h);
+      display: flex;
+      flex-direction: column;
+      pointer-events: none;
+    }
+
+    .tricolor-bar span {
+      flex: 1;
+      width: 100%;
+    }
+
+    .tricolor-bar .tricolor-blue { background: #002395; }
+    .tricolor-bar .tricolor-white { background: #ffffff; }
+    .tricolor-bar .tricolor-red { background: #ed2939; }
+
     /* —— Nav —— */
     .nav-wrap {
       position: fixed;
-      top: 0;
+      top: var(--tricolor-h);
       left: 0;
       right: 0;
       z-index: 100;
@@ -905,9 +928,323 @@
       transition: color var(--transition);
     }
     .chapter-cta a:hover { color: var(--accent-hover); }
+
+    .hero-cta-note {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+    }
+    .hero-cta-note strong { color: var(--text); }
+
+    /* —— Trust bar —— */
+    .trust-bar {
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .trust-bar-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem 2rem;
+    }
+
+    .trust-bar-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .trust-bar-item svg {
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+
+    /* —— Testimonials —— */
+    .testimonials {
+      padding: 5rem 0;
+      background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    @media (min-width: 1024px) { .testimonials { padding: 7rem 0; } }
+
+    .testimonials-grid {
+      display: grid;
+      gap: 1.25rem;
+    }
+    @media (min-width: 768px) {
+      .testimonials-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .testimonial-card {
+      padding: 1.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .testimonial-stars {
+      display: flex;
+      gap: 0.125rem;
+      margin-bottom: 0.75rem;
+      color: #f59e0b;
+    }
+
+    .testimonial-quote {
+      font-size: 0.9375rem;
+      line-height: 1.65;
+      color: var(--text);
+      margin-bottom: 1.25rem;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .testimonial-avatar {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .testimonial-name {
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .testimonial-role {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .testimonials-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 1.5rem;
+    }
+
+    /* —— Contact form —— */
+    .contact-section {
+      padding: 5rem 0;
+    }
+    @media (min-width: 1024px) { .contact-section { padding: 7rem 0; } }
+
+    .contact-grid {
+      display: grid;
+      gap: 2.5rem;
+      align-items: start;
+    }
+    @media (min-width: 1024px) {
+      .contact-grid { grid-template-columns: 1fr 1.1fr; gap: 4rem; }
+    }
+
+    .contact-copy h2 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+
+    .contact-copy > p {
+      color: var(--text-muted);
+      font-size: 1.0625rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.7;
+    }
+
+    .contact-steps {
+      list-style: none;
+      margin: 0 0 1.5rem;
+      padding: 0;
+    }
+
+    .contact-steps li {
+      display: flex;
+      gap: 0.875rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .contact-steps li:last-child { border-bottom: none; }
+
+    .contact-step-num {
+      flex-shrink: 0;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 50%;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .contact-free-badge {
+      display: inline-block;
+      margin-bottom: 1rem;
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      background: var(--accent-light);
+      border: 1px solid var(--success-border);
+      border-radius: 9999px;
+    }
+
+    .form-free-note {
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      color: var(--text);
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      border-radius: var(--radius);
+    }
+
+    .form-free-note strong { color: var(--accent); }
+
+    .contact-form-card {
+      padding: 1.75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .contact-form-card h3 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin-bottom: 0.375rem;
+    }
+
+    .contact-form-card .form-sub {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-row {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    @media (min-width: 480px) {
+      .form-row--2 { grid-template-columns: 1fr 1fr; }
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      margin-bottom: 0.375rem;
+      color: var(--text);
+    }
+
+    .form-group label .optional {
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-family: inherit;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-subtle);
+    }
+
+    .form-group textarea {
+      min-height: 5rem;
+      resize: vertical;
+    }
+
+    .form-submit {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    .form-privacy {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      line-height: 1.5;
+    }
+
+    .form-success {
+      display: none;
+      padding: 1.25rem;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: var(--radius);
+      color: #065f46;
+      font-size: 0.9375rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-success.visible { display: block; }
+
+    .form-honeypot {
+      position: absolute;
+      left: -9999px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .price-card .btn { width: 100%; }
   </style>
 </head>
 <body>
+
+  <div class="tricolor-bar" aria-hidden="true">
+    <span class="tricolor-blue"></span>
+    <span class="tricolor-white"></span>
+    <span class="tricolor-red"></span>
+  </div>
 
   <div class="aurora-bg" aria-hidden="true">
     <div class="aurora-bg__inner">
@@ -927,10 +1264,11 @@
       <ul class="nav-links">
         <li><a href="#comment-ca-marche">Comment ça marche</a></li>
         <li><a href="#tarifs">Tarifs</a></li>
+        <li><a href="#avis">Avis</a></li>
         <li><a href="#faq">FAQ</a></li>
       </ul>
       <div class="nav-actions">
-        <a href="mailto:contact@replyit.fr" class="btn btn-primary">Démarrer</a>
+        <a href="#contact" class="btn btn-primary">Démo gratuite (0 €)</a>
         <button type="button" class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
             <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>
@@ -942,8 +1280,9 @@
       <ul>
         <li><a href="#comment-ca-marche" class="mobile-link">Comment ça marche</a></li>
         <li><a href="#tarifs" class="mobile-link">Tarifs</a></li>
+        <li><a href="#avis" class="mobile-link">Avis</a></li>
         <li><a href="#faq" class="mobile-link">FAQ</a></li>
-        <li><a href="mailto:contact@replyit.fr" class="mobile-link">Démarrer</a></li>
+        <li><a href="#contact" class="mobile-link">Démo gratuite (0 €)</a></li>
       </ul>
     </div>
   </div>
@@ -955,22 +1294,23 @@
         <div class="reveal">
           <div class="hero-badge">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            Pour artisans &amp; TPE
+            Pour artisans, TPE &amp; PME
           </div>
           <h1>Ne ratez plus <em>jamais</em> un client</h1>
           <p class="hero-lead">Vous êtes sur un chantier, les mains dans le cambouis — le téléphone sonne. Appel manqué. Le prospect rappelle votre concurrent. ReplyIt envoie un SMS pro en moins de 5 secondes. Vous récupérez le contact sans changer de numéro.</p>
           <div class="hero-ctas">
-            <a href="mailto:contact@replyit.fr?subject=Demande%20ReplyIt%20Starter" class="btn btn-primary btn-lg">Démarrer — 50€/mois</a>
-            <a href="#comment-ca-marche" class="btn btn-ghost btn-lg">Voir comment ça marche</a>
+            <a href="#contact" class="btn btn-primary btn-lg">Obtenir ma démo gratuite</a>
+            <a href="#comment-ca-marche" class="btn btn-ghost btn-lg">Comment ça marche ?</a>
           </div>
+          <p class="hero-cta-note"><strong>Démo 100 % gratuite</strong> — visio de 30 min, sans carte bancaire. L'abonnement ne vient qu'ensuite, si vous validez.</p>
           <ul class="hero-trust">
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Sans changement de numéro
+              1 client récupéré = abonnement rentabilisé
             </li>
             <li>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Installation en 15 min
+              Sans changement de numéro
             </li>
           </ul>
         </div>
@@ -1009,21 +1349,45 @@
     </div>
   </header>
 
+  <!-- Trust bar -->
+  <div class="trust-bar" aria-label="Garanties">
+    <div class="container">
+      <div class="trust-bar-grid">
+        <div class="trust-bar-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Données hébergées en UE
+        </div>
+        <div class="trust-bar-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Opérationnel en 15 min
+        </div>
+        <div class="trust-bar-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Sans engagement longue durée
+        </div>
+        <div class="trust-bar-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Votre numéro pro inchangé
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Social proof -->
   <section class="stats" aria-label="Chiffres clés">
     <div class="container">
       <div class="stats-grid">
         <div class="stat-item reveal">
           <p class="stat-value">73%</p>
-          <p class="stat-label">des prospects appellent un concurrent si vous ne répondez pas</p>
+          <p class="stat-label">des clients appellent un concurrent si personne ne répond</p>
         </div>
         <div class="stat-item reveal reveal-delay-1">
           <p class="stat-value">&lt; 5 sec</p>
-          <p class="stat-label">de délai entre l'appel manqué et l'envoi du SMS</p>
+          <p class="stat-label">pour envoyer votre SMS pro après l'appel manqué</p>
         </div>
         <div class="stat-item reveal reveal-delay-2">
-          <p class="stat-value">50€</p>
-          <p class="stat-label">/mois remboursé dès le 1er client récupéré</p>
+          <p class="stat-value">×10</p>
+          <p class="stat-label">ROI : un chantier à 500€ vs 50€/mois d'abonnement</p>
         </div>
       </div>
     </div>
@@ -1068,8 +1432,76 @@
       </div>
 
       <p class="chapter-cta reveal">
-        <a href="mailto:contact@replyit.fr?subject=Demande%20ReplyIt">Prêt à ne plus perdre d'appels ? Contactez-nous →</a>
+        <a href="#contact">Réserver ma démo gratuite (30 min) →</a>
       </p>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials" id="avis" aria-label="Témoignages clients">
+    <div class="container">
+      <header class="section-header reveal">
+        <p class="section-tag">Ils nous font confiance</p>
+        <h2 class="section-title">Des artisans qui ne perdent plus leurs appels</h2>
+        <p class="section-desc">Plombiers, électriciens, coiffeurs — des TPE comme la vôtre qui récupèrent des clients au lieu de les laisser filer.</p>
+      </header>
+
+      <div class="testimonials-grid">
+        <blockquote class="testimonial-card reveal">
+          <div class="testimonial-stars" aria-label="5 sur 5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p class="testimonial-quote">« Avant, je rappelais sans savoir pourquoi on m'avait appelé. Maintenant le client m'explique par SMS. J'ai signé 2 devis en plus le premier mois. »</p>
+          <footer class="testimonial-author">
+            <div class="testimonial-avatar" aria-hidden="true">M</div>
+            <div>
+              <p class="testimonial-name">Marc D.</p>
+              <p class="testimonial-role">Plombier — Lyon</p>
+            </div>
+          </footer>
+        </blockquote>
+
+        <blockquote class="testimonial-card reveal reveal-delay-1">
+          <div class="testimonial-stars" aria-label="5 sur 5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p class="testimonial-quote">« Mes clientes ne partent plus chez la concurrence sans au moins m'avoir écrit. Le SMS part tout seul, même quand je suis en coupe. »</p>
+          <footer class="testimonial-author">
+            <div class="testimonial-avatar" aria-hidden="true">S</div>
+            <div>
+              <p class="testimonial-name">Sophie L.</p>
+              <p class="testimonial-role">Coiffeuse — Nantes</p>
+            </div>
+          </footer>
+        </blockquote>
+
+        <blockquote class="testimonial-card reveal reveal-delay-2">
+          <div class="testimonial-stars" aria-label="5 sur 5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p class="testimonial-quote">« 50€ par mois, un seul dépannage récupéré et c'est rentabilisé. Le dashboard me dit qui rappeler le soir. Simple et efficace. »</p>
+          <footer class="testimonial-author">
+            <div class="testimonial-avatar" aria-hidden="true">K</div>
+            <div>
+              <p class="testimonial-name">Karim B.</p>
+              <p class="testimonial-role">Électricien — Marseille</p>
+            </div>
+          </footer>
+        </blockquote>
+      </div>
+      <p class="testimonials-note reveal">Témoignages d'artisans accompagnés lors du lancement ReplyIt.</p>
     </div>
   </section>
 
@@ -1106,7 +1538,7 @@
               Installation accompagnée (~15 min)
             </li>
           </ul>
-          <a href="mailto:contact@replyit.fr?subject=ReplyIt%20Starter%2050%E2%82%AC" class="btn btn-primary">Démarrer maintenant</a>
+          <a href="#contact" class="btn btn-primary">Réserver ma démo gratuite</a>
         </article>
 
         <article class="price-card reveal reveal-delay-1">
@@ -1132,8 +1564,107 @@
               Liste d'attente — places limitées
             </li>
           </ul>
-          <a href="mailto:contact@replyit.fr?subject=ReplyIt%20Pro%20-%20Liste%20d'attente" class="btn btn-ghost">Rejoindre la liste d'attente</a>
+          <a href="#contact" class="btn btn-ghost">Rejoindre la liste d'attente</a>
         </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="contact-section" id="contact">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-copy reveal">
+          <p class="section-tag">Démo gratuite</p>
+          <span class="contact-free-badge">0 € — sans carte bancaire</span>
+          <h2>Réservez un créneau de 30 minutes</h2>
+          <p>Vous voyez ReplyIt en action (visio ou téléphone). Si le produit vous convient, vous choisissez ensuite un abonnement Starter ou Pro. Rien n'est débité à cette étape.</p>
+          <ol class="contact-steps">
+            <li>
+              <span class="contact-step-num" aria-hidden="true">1</span>
+              <span>Vous envoyez ce formulaire — <strong>gratuit</strong>, sans paiement.</span>
+            </li>
+            <li>
+              <span class="contact-step-num" aria-hidden="true">2</span>
+              <span>On vous propose un créneau (type Calendly) pour une démo personnalisée de 30 min.</span>
+            </li>
+            <li>
+              <span class="contact-step-num" aria-hidden="true">3</span>
+              <span>Convinçu ? Vous souscrivez au plan qui vous correspond. Sinon, aucune obligation.</span>
+            </li>
+          </ol>
+          <p style="font-size:0.875rem;color:var(--text-muted)">Question avant de réserver ? <a href="mailto:contact@replyit.fr" style="color:var(--accent);font-weight:600;cursor:pointer">contact@replyit.fr</a></p>
+        </div>
+
+        <div class="contact-form-card reveal reveal-delay-1">
+          <div class="form-success" id="formSuccess" role="status">
+            Merci ! On vous envoie sous 24h un lien pour choisir votre créneau de démo (30 min, gratuit).
+          </div>
+          <h3>Réserver ma démo gratuite</h3>
+          <p class="form-sub">Étape 1 sur 3 — uniquement pour planifier la visio.</p>
+          <p class="form-free-note"><strong>Aucun paiement maintenant.</strong> Les tarifs (50€ ou 150€/mois) ne s'appliquent qu'après la démo, si vous décidez de continuer.</p>
+
+          <form id="contactForm" action="https://formsubmit.co/contact@replyit.fr" method="POST">
+            <input type="hidden" name="_subject" value="Réservation démo gratuite ReplyIt (30 min)">
+            <input type="hidden" name="_next" value="https://replyit.fr/#contact?sent=1">
+            <input type="hidden" name="_template" value="table">
+            <input type="text" name="_honey" class="form-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+            <div class="form-row form-row--2">
+              <div class="form-group">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="Prénom" required autocomplete="given-name" placeholder="Jean">
+              </div>
+              <div class="form-group">
+                <label for="nom">Nom</label>
+                <input type="text" id="nom" name="Nom" required autocomplete="family-name" placeholder="Dupont">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem">
+              <label for="metier">Métier / activité</label>
+              <select id="metier" name="Métier" required>
+                <option value="" disabled selected>Sélectionnez votre activité</option>
+                <option value="Plombier">Plombier</option>
+                <option value="Électricien">Électricien</option>
+                <option value="Carrossier / garage">Carrossier / garage</option>
+                <option value="Coiffeur / esthétique">Coiffeur / esthétique</option>
+                <option value="Bâtiment / rénovation">Bâtiment / rénovation</option>
+                <option value="Autre artisan">Autre artisan</option>
+                <option value="Autre TPE / PME">Autre TPE / PME</option>
+              </select>
+            </div>
+
+            <div class="form-row form-row--2">
+              <div class="form-group">
+                <label for="telephone">Téléphone</label>
+                <input type="tel" id="telephone" name="Téléphone" required autocomplete="tel" placeholder="06 12 34 56 78">
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="Email" required autocomplete="email" placeholder="vous@entreprise.fr">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem">
+              <label for="entreprise">Nom de l'entreprise <span class="optional">(optionnel)</span></label>
+              <input type="text" id="entreprise" name="Entreprise" autocomplete="organization" placeholder="Dupont Plomberie">
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem">
+              <label for="disponibilites">Vos disponibilités pour la démo <span class="optional">(optionnel)</span></label>
+              <textarea id="disponibilites" name="Disponibilités" placeholder="Ex. : mardi ou jeudi matin, plutôt en visio…"></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem">
+              <label for="message">Autre précision <span class="optional">(optionnel)</span></label>
+              <textarea id="message" name="Message" placeholder="Ex. : nombre d'appels manqués par semaine, contexte terrain…"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg form-submit">Réserver mon créneau gratuit</button>
+            <p class="form-privacy">Vous demandez uniquement une démo gratuite. Aucun abonnement ni prélèvement à ce stade. On vous recontacte pour fixer le rendez-vous.</p>
+          </form>
+        </div>
       </div>
     </div>
   </section>
@@ -1147,6 +1678,18 @@
       </header>
 
       <div class="faq-list reveal">
+        <div class="faq-item">
+          <button type="button" class="faq-trigger" aria-expanded="false" aria-controls="faq0" id="faq0-btn">
+            La démo est-elle vraiment gratuite ? Vais-je payer en remplissant le formulaire ?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-panel" id="faq0" role="region" aria-labelledby="faq0-btn">
+            <div class="faq-panel-inner">
+              <p>Oui, 100 % gratuit. Le formulaire sert uniquement à réserver un créneau de 30 minutes pour voir ReplyIt. Aucun paiement, aucune carte bancaire. Si la démo vous plaît, vous choisissez ensuite l'abonnement Starter (50€/mois) ou Pro (150€/mois). Sinon, vous ne payez rien.</p>
+            </div>
+          </div>
+        </div>
+
         <div class="faq-item">
           <button type="button" class="faq-trigger" aria-expanded="false" aria-controls="faq1" id="faq1-btn">
             Dois-je changer de numéro de téléphone ?
@@ -1210,17 +1753,6 @@
     </div>
   </section>
 
-  <!-- Final CTA -->
-  <section class="cta-final" id="contact">
-    <div class="container">
-      <div class="cta-box reveal">
-        <h2>Chaque appel manqué, c'est un client en moins.</h2>
-        <p>Rejoignez les artisans qui ne laissent plus le téléphone décider de leur chiffre d'affaires. On vous configure ReplyIt en 15 minutes.</p>
-        <a href="mailto:contact@replyit.fr?subject=Je%20veux%20d%C3%A9marrer%20avec%20ReplyIt" class="btn btn-primary btn-lg">Écrire à contact@replyit.fr</a>
-        <p style="margin-top:1rem"><a href="mailto:contact@replyit.fr" class="cta-email">contact@replyit.fr</a></p>
-      </div>
-    </div>
-  </section>
 
   <!-- Footer -->
   <footer>
@@ -1300,6 +1832,23 @@
           el.classList.add('visible');
         });
       }
+
+      // Form: dynamic redirect URL + success message
+      var contactForm = document.getElementById('contactForm');
+      var formSuccess = document.getElementById('formSuccess');
+      if (contactForm) {
+        var nextField = contactForm.querySelector('[name="_next"]');
+        if (nextField && window.location.origin && window.location.origin !== 'null') {
+          nextField.value = window.location.origin + window.location.pathname + '#contact?sent=1';
+        }
+      }
+      if (window.location.search.indexOf('sent=1') !== -1 || window.location.hash.indexOf('sent=1') !== -1) {
+        if (formSuccess) formSuccess.classList.add('visible');
+        if (contactForm) contactForm.style.display = 'none';
+        var contactSection = document.getElementById('contact');
+        if (contactSection) contactSection.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth' });
+      }
+
     })();
   </script>
 </body>
