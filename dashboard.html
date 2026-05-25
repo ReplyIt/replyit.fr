@@ -489,10 +489,26 @@
       btn.textContent = 'Connexion…';
       err.classList.remove('show');
 
-      const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+      let data, error;
+      try {
+        ({ data, error } = await sb.auth.signInWithPassword({ email, password: pass }));
+      } catch (e) {
+        showErr('Impossible de joindre le serveur. Vérifiez votre connexion ou réessayez plus tard.');
+        console.error(e);
+        btn.disabled = false;
+        btn.textContent = 'Se connecter';
+        return;
+      }
 
       if (error) {
-        showErr('Email ou mot de passe incorrect.');
+        if (error.message?.includes('fetch') || error.name === 'AuthRetryableFetchError') {
+          showErr('Serveur injoignable — la configuration du site est peut‑être incorrecte.');
+        } else if (error.message?.includes('Email not confirmed')) {
+          showErr('Confirmez votre email avant de vous connecter (vérifiez votre boîte mail).');
+        } else {
+          showErr('Email ou mot de passe incorrect.');
+        }
+        console.error('Auth:', error.message);
         btn.disabled = false;
         btn.textContent = 'Se connecter';
         return;
