@@ -270,6 +270,11 @@
 
     .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
 
+    .nav-actions .btn-ghost { display: none; }
+    @media (min-width: 768px) {
+      .nav-actions .btn-ghost { display: inline-flex; }
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -900,6 +905,20 @@
       color: var(--text-muted);
     }
 
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem 1.25rem;
+    }
+    .footer-links a {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--accent);
+      transition: color var(--transition);
+    }
+    .footer-links a:hover { color: var(--accent-hover); }
+
     /* —— Reveal —— */
     .reveal {
       opacity: 0;
@@ -1260,7 +1279,7 @@
   <!-- Nav -->
   <div class="nav-wrap">
     <nav class="nav" aria-label="Navigation principale">
-      <a href="#" class="logo" aria-label="ReplyIt accueil">Reply<span>It</span></a>
+      <a href="/" class="logo" aria-label="ReplyIt accueil">Reply<span>It</span></a>
       <ul class="nav-links">
         <li><a href="#comment-ca-marche">Comment ça marche</a></li>
         <li><a href="#tarifs">Tarifs</a></li>
@@ -1268,6 +1287,7 @@
         <li><a href="#faq">FAQ</a></li>
       </ul>
       <div class="nav-actions">
+        <a href="dashboard.html" class="btn btn-ghost">Espace client</a>
         <a href="mailto:contact@replyit.fr?subject=Je%20veux%20d%C3%A9marrer%20ReplyIt" class="btn btn-primary">Démarrer</a>
         <button type="button" class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -1282,6 +1302,7 @@
         <li><a href="#tarifs" class="mobile-link">Tarifs</a></li>
         <li><a href="#avis" class="mobile-link">Avis</a></li>
         <li><a href="#faq" class="mobile-link">FAQ</a></li>
+        <li><a href="dashboard.html" class="mobile-link">Espace client</a></li>
         <li><a href="mailto:contact@replyit.fr?subject=Je%20veux%20d%C3%A9marrer%20ReplyIt" class="mobile-link">Démarrer</a></li>
       </ul>
     </div>
@@ -1682,7 +1703,11 @@
   <footer>
     <div class="container">
       <div class="footer-inner">
-        <a href="#" class="logo">Reply<span>It</span></a>
+        <a href="/" class="logo">Reply<span>It</span></a>
+        <nav class="footer-links" aria-label="Liens utiles">
+          <a href="dashboard.html">Espace client</a>
+          <a href="mailto:contact@replyit.fr">Contact</a>
+        </nav>
         <p class="footer-copy">© 2026 ReplyIt — replyit.fr</p>
         <p class="footer-made">Fait en France 🇫🇷</p>
       </div>
