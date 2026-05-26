@@ -10,83 +10,50 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #f8fafc;
-      --bg-card: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --text-muted: #475569;
-      --accent: #0369a1;
-      --accent-hover: #0284c7;
-      --accent-light: #e0f2fe;
-      --shadow-sm: 0 1px 2px rgba(15,23,42,0.06);
+      --bg: #f8fafc; --bg-card: #ffffff; --border: #e2e8f0;
+      --text: #0f172a; --text-muted: #475569;
+      --accent: #0369a1; --accent-hover: #0284c7; --accent-light: #e0f2fe;
       --shadow-md: 0 8px 30px rgba(15,23,42,0.08);
       --font: 'Plus Jakarta Sans', system-ui, sans-serif;
-      --tricolor-h: 4px;
-      --radius: 0.75rem;
-      --aurora-white: #ffffff;
-      --aurora-transparent: transparent;
-      --aurora-1: #0ea5e9;
-      --aurora-2: #7dd3fc;
-      --aurora-3: #bae6fd;
-      --aurora-4: #e0f2fe;
-      --aurora-5: #0369a1;
+      --tricolor-h: 4px; --radius: 0.75rem;
+      --aurora-white: #ffffff; --aurora-transparent: transparent;
+      --aurora-1: #0ea5e9; --aurora-2: #7dd3fc; --aurora-3: #bae6fd;
+      --aurora-4: #e0f2fe; --aurora-5: #0369a1;
       --aurora-white-gradient: repeating-linear-gradient(100deg,var(--aurora-white) 0%,var(--aurora-white) 7%,var(--aurora-transparent) 10%,var(--aurora-transparent) 12%,var(--aurora-white) 16%);
       --aurora-color-gradient: repeating-linear-gradient(100deg,var(--aurora-5) 10%,var(--aurora-2) 15%,var(--aurora-3) 20%,var(--aurora-4) 25%,var(--aurora-1) 30%);
     }
-
     @keyframes aurora {
       from { background-position: 50% 50%, 50% 50%; }
       to   { background-position: 350% 50%, 350% 50%; }
     }
-
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* Aurora */
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
     .aurora-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
     .aurora-bg__inner { position: absolute; inset: -10px; -webkit-mask-image: radial-gradient(ellipse 90% 70% at 70% 0%, #000 15%, transparent 72%); mask-image: radial-gradient(ellipse 90% 70% at 70% 0%, #000 15%, transparent 72%); }
     .aurora-bg__layer { position: absolute; inset: -10px; opacity: 0.5; filter: blur(10px) invert(1); background-image: var(--aurora-white-gradient), var(--aurora-color-gradient); background-size: 300%, 200%; background-position: 50% 50%, 50% 50%; }
     .aurora-bg__animate { position: absolute; inset: 0; background-image: var(--aurora-white-gradient), var(--aurora-color-gradient); background-size: 200%, 100%; animation: aurora 60s linear infinite; mix-blend-mode: difference; }
     .aurora-bg__fade { position: absolute; inset: 0; background: linear-gradient(180deg,rgba(248,250,252,0.15) 0%,rgba(248,250,252,0.45) 55%,rgba(248,250,252,0.72) 100%); }
-
-    /* Tricolor */
     .tricolor-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 201; height: var(--tricolor-h); display: flex; pointer-events: none; }
     .tricolor-bar span { flex: 1; }
     .tricolor-blue { background: #002395; }
     .tricolor-white { background: #ffffff; }
     .tricolor-red { background: #ed2939; }
-
     .page-content { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: calc(var(--tricolor-h) + 2rem) 1.5rem 3rem; }
-
     .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-bottom: 2rem; letter-spacing: -0.02em; }
-
     h1 { font-size: 1.75rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
     .subtitle { color: var(--text-muted); text-align: center; margin-bottom: 2.5rem; font-size: 0.95rem; }
-
-    /* Steps */
     .steps { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2.5rem; }
     .step { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--text-muted); }
     .step-num { width: 1.4rem; height: 1.4rem; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; }
     .step.active .step-num { background: var(--accent); border-color: var(--accent); color: white; }
-    .step.active { color: var(--text); font-weight: 600; }
+    .step.done .step-num { background: #16a34a; border-color: #16a34a; color: white; }
+    .step.active, .step.done { color: var(--text); font-weight: 600; }
     .step-sep { width: 2rem; height: 1.5px; background: var(--border); }
-
-    /* Form */
     .form-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 26rem; box-shadow: var(--shadow-md); }
-
     .field { margin-bottom: 1rem; }
     label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.35rem; letter-spacing: 0.02em; text-transform: uppercase; }
     input { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--border); border-radius: 0.5rem; font-family: var(--font); font-size: 0.95rem; color: var(--text); background: var(--bg); transition: border-color 150ms; outline: none; }
     input:focus { border-color: var(--accent); }
-
-    /* Plans */
     .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem; }
     .plan { border: 2px solid var(--border); border-radius: var(--radius); padding: 1rem; cursor: pointer; transition: border-color 150ms, background 150ms; position: relative; }
     .plan:hover { border-color: var(--accent); }
@@ -96,18 +63,23 @@
     .plan-price span { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
     .plan-badge { position: absolute; top: -0.6rem; right: 0.75rem; background: var(--accent); color: white; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; letter-spacing: 0.04em; text-transform: uppercase; }
     .plan-features { margin-top: 0.6rem; font-size: 0.78rem; color: var(--text-muted); line-height: 1.6; }
-
     .btn { width: 100%; padding: 0.8rem; background: var(--accent); color: white; border: none; border-radius: 0.5rem; font-family: var(--font); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 150ms; margin-top: 0.5rem; }
     .btn:hover { background: var(--accent-hover); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
+    .btn-secondary { width: 100%; padding: 0.8rem; background: transparent; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 0.5rem; font-family: var(--font); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 150ms; margin-top: 0.5rem; }
+    .btn-secondary:hover { background: var(--accent-light); }
     .error { color: #b91c1c; font-size: 0.82rem; margin-top: 0.5rem; display: none; }
     .error.show { display: block; }
-
     .login-link { text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-muted); }
     .login-link a { color: var(--accent); font-weight: 600; }
+    .secure { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem; font-size: 0.75rem; color: var(--text-muted); margin-top: 1.5rem; }
 
-    .secure { display: flex; align-items: center; justify-content: center; gap: 0.35rem; font-size: 0.75rem; color: var(--text-muted); margin-top: 1.5rem; }
+    /* Email verification card */
+    .verify-icon { font-size: 3rem; text-align: center; margin-bottom: 1rem; }
+    .verify-email { font-weight: 700; color: var(--accent); word-break: break-all; }
+    .verify-hint { font-size: 0.82rem; color: var(--text-muted); margin-top: 1rem; line-height: 1.6; text-align: center; }
+    .resend-link { color: var(--accent); cursor: pointer; font-weight: 600; background: none; border: none; font-family: var(--font); font-size: 0.82rem; }
+    .resend-link:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -122,25 +94,17 @@
 
   <div class="page-content">
     <div class="logo">ReplyIt</div>
-
-    <h1>Créer mon compte</h1>
-    <p class="subtitle">Ne ratez plus jamais un client</p>
+    <h1 id="main-title">Créer mon compte</h1>
+    <p class="subtitle" id="main-subtitle">Ne ratez plus jamais un client</p>
 
     <div class="steps">
-      <div class="step active" id="step1-indicator">
-        <div class="step-num">1</div>
-        <span>Informations</span>
-      </div>
+      <div class="step active" id="si1"><div class="step-num" id="sn1">1</div><span>Infos</span></div>
       <div class="step-sep"></div>
-      <div class="step" id="step2-indicator">
-        <div class="step-num">2</div>
-        <span>Plan</span>
-      </div>
+      <div class="step" id="si2"><div class="step-num" id="sn2">2</div><span>Email</span></div>
       <div class="step-sep"></div>
-      <div class="step" id="step3-indicator">
-        <div class="step-num">3</div>
-        <span>Paiement</span>
-      </div>
+      <div class="step" id="si3"><div class="step-num" id="sn3">3</div><span>Plan</span></div>
+      <div class="step-sep"></div>
+      <div class="step" id="si4"><div class="step-num" id="sn4">4</div><span>Paiement</span></div>
     </div>
 
     <!-- Step 1 : infos -->
@@ -162,12 +126,24 @@
         <input type="password" id="password" placeholder="8 caractères minimum" autocomplete="new-password">
       </div>
       <div class="error" id="error1"></div>
-      <button class="btn" onclick="goStep2()">Continuer →</button>
+      <button class="btn" onclick="registerUser()">Continuer →</button>
       <div class="login-link">Déjà un compte ? <a href="/dashboard.html">Se connecter</a></div>
     </div>
 
-    <!-- Step 2 : plan -->
-    <div class="form-card" id="step2" style="display:none; max-width:32rem;">
+    <!-- Step 2 : vérification email -->
+    <div class="form-card" id="step2" style="display:none; text-align:center;">
+      <div class="verify-icon">📬</div>
+      <h2 style="font-size:1.2rem; margin-bottom:0.5rem;">Vérifiez votre email</h2>
+      <p style="font-size:0.9rem; color:var(--text-muted);">Nous avons envoyé un lien de confirmation à</p>
+      <p class="verify-email" id="confirm-email" style="margin-top:0.35rem;"></p>
+      <p class="verify-hint">Cliquez sur le lien dans l'email pour activer votre compte.<br>Vérifiez aussi vos spams si vous ne le trouvez pas.</p>
+      <div style="margin-top:1.5rem; font-size:0.82rem; color:var(--text-muted);">
+        Pas reçu ? <button class="resend-link" id="resend-btn" onclick="resendEmail()">Renvoyer l'email</button>
+      </div>
+    </div>
+
+    <!-- Step 3 : plan -->
+    <div class="form-card" id="step3" style="display:none; max-width:32rem;">
       <div class="plans">
         <div class="plan selected" id="plan-starter" onclick="selectPlan('starter')">
           <div class="plan-name">Starter</div>
@@ -181,9 +157,8 @@
           <div class="plan-features">✓ SMS automatiques<br>✓ Appels illimités<br>✓ 3 numéros</div>
         </div>
       </div>
-      <div class="error" id="error2"></div>
-      <button class="btn" onclick="goCheckout()">Payer et créer mon compte →</button>
-      <div class="login-link"><a href="#" onclick="backStep1()">← Retour</a></div>
+      <div class="error" id="error3"></div>
+      <button class="btn" onclick="goCheckout()">Payer et activer mon compte →</button>
     </div>
   </div>
 
@@ -192,21 +167,40 @@
   <script>
     const SUPABASE_URL = 'https://yjaycdraeernpwqpbvco.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqYXljZHJhZWVybnB3cXBidmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NjIyNjcsImV4cCI6MjA5NTIzODI2N30.2sUDp_ERuiVaVtD0TvemuuADsKrJ8TXeBLXfhwPnP5I';
-
-    const PRICE_IDS = {
-      starter: 'price_1TbFhdBTZNxndIAE5PaJGJt9',
-      pro: 'price_1TbFiABTZNxndIAEEbZ3SaDc'
-    };
+    const PRICE_IDS = { starter: 'price_1TbFhdBTZNxndIAE5PaJGJt9', pro: 'price_1TbFiABTZNxndIAEEbZ3SaDc' };
 
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let selectedPlan = 'starter';
     let userData = {};
+    let currentUserId = null;
 
-    function selectPlan(plan) {
-      selectedPlan = plan;
-      document.querySelectorAll('.plan').forEach(p => p.classList.remove('selected'));
-      document.getElementById('plan-' + plan).classList.add('selected');
+    // Vérifier si l'user revient après confirmation email
+    sbClient.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        currentUserId = session.user.id;
+        // Afficher le step 3 (choix du plan)
+        showStep(3);
+      }
+    });
+
+    function setStep(num) {
+      for (let i = 1; i <= 4; i++) {
+        const ind = document.getElementById('si' + i);
+        const num_el = document.getElementById('sn' + i);
+        ind.classList.remove('active', 'done');
+        if (i < num) { ind.classList.add('done'); num_el.textContent = '✓'; }
+        else if (i === num) { ind.classList.add('active'); num_el.textContent = i; }
+        else { num_el.textContent = i; }
+      }
+    }
+
+    function showStep(num) {
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'none';
+      document.getElementById('step3').style.display = 'none';
+      document.getElementById('step' + num).style.display = 'block';
+      setStep(num);
     }
 
     function showError(id, msg) {
@@ -219,7 +213,7 @@
       document.getElementById(id).classList.remove('show');
     }
 
-    function goStep2() {
+    async function registerUser() {
       hideError('error1');
       const fullname = document.getElementById('fullname').value.trim();
       const company = document.getElementById('company').value.trim();
@@ -230,70 +224,90 @@
       if (password.length < 8) return showError('error1', 'Le mot de passe doit faire au moins 8 caractères.');
       if (!email.includes('@')) return showError('error1', 'Email invalide.');
 
+      const btn = document.querySelector('#step1 .btn');
+      btn.disabled = true;
+      btn.textContent = 'Création du compte…';
+
       userData = { fullname, company, email, password };
 
-      document.getElementById('step1').style.display = 'none';
-      document.getElementById('step2').style.display = 'block';
-      document.getElementById('step1-indicator').classList.remove('active');
-      document.getElementById('step2-indicator').classList.add('active');
-    }
-
-    function backStep1() {
-      document.getElementById('step2').style.display = 'none';
-      document.getElementById('step1').style.display = 'block';
-      document.getElementById('step2-indicator').classList.remove('active');
-      document.getElementById('step1-indicator').classList.add('active');
-    }
-
-    async function goCheckout() {
-      hideError('error2');
-      const btn = document.querySelector('#step2 .btn');
-      btn.disabled = true;
-      btn.textContent = 'Redirection…';
-
       try {
-        // 1. Créer le compte Supabase
         const { data, error } = await sbClient.auth.signUp({
-          email: userData.email,
-          password: userData.password,
+          email,
+          password,
           options: {
-            data: {
-              full_name: userData.fullname,
-              company_name: userData.company,
-              plan: selectedPlan,
-            }
+            emailRedirectTo: window.location.origin + '/signup.html',
+            data: { full_name: fullname, company_name: company }
           }
         });
 
         if (error) throw error;
 
-        // 2. Appeler l'Edge Function pour créer la session Stripe
-        const session = await sbClient.functions.invoke('create-checkout', {
+        document.getElementById('confirm-email').textContent = email;
+        showStep(2);
+
+      } catch (err) {
+        showError('error1', err.message || 'Une erreur est survenue.');
+        btn.disabled = false;
+        btn.textContent = 'Continuer →';
+      }
+    }
+
+    async function resendEmail() {
+      const btn = document.getElementById('resend-btn');
+      btn.disabled = true;
+      btn.textContent = 'Envoyé !';
+      await sbClient.auth.resend({ type: 'signup', email: userData.email });
+      setTimeout(() => { btn.disabled = false; btn.textContent = 'Renvoyer l\'email'; }, 30000);
+    }
+
+    function selectPlan(plan) {
+      selectedPlan = plan;
+      document.querySelectorAll('.plan').forEach(p => p.classList.remove('selected'));
+      document.getElementById('plan-' + plan).classList.add('selected');
+    }
+
+    async function goCheckout() {
+      hideError('error3');
+
+      if (!currentUserId) {
+        const { data } = await sbClient.auth.getUser();
+        if (data?.user) currentUserId = data.user.id;
+        else return showError('error3', 'Session expirée, veuillez vous reconnecter.');
+      }
+
+      const btn = document.querySelector('#step3 .btn');
+      btn.disabled = true;
+      btn.textContent = 'Redirection vers le paiement…';
+
+      try {
+        const { data: sessionData, error: sessionError } = await sbClient.auth.getSession();
+        if (sessionError) throw sessionError;
+
+        const { data, error } = await sbClient.functions.invoke('create-checkout', {
           body: {
             priceId: PRICE_IDS[selectedPlan],
-            email: userData.email,
-            userId: data.user.id,
+            email: sessionData.session.user.email,
+            userId: currentUserId,
+            plan: selectedPlan,
             successUrl: window.location.origin + '/dashboard.html?payment=success',
             cancelUrl: window.location.origin + '/signup.html?payment=cancelled',
           }
         });
 
-        if (session.error) throw session.error;
-
-        // 3. Rediriger vers Stripe
-        window.location.href = session.data.url;
+        if (error) throw error;
+        window.location.href = data.url;
 
       } catch (err) {
-        showError('error2', err.message || 'Une erreur est survenue, réessayez.');
+        showError('error3', err.message || 'Une erreur est survenue, réessayez.');
         btn.disabled = false;
-        btn.textContent = 'Payer et créer mon compte →';
+        btn.textContent = 'Payer et activer mon compte →';
       }
     }
 
     // Message si retour depuis Stripe annulé
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'cancelled') {
-      document.querySelector('.subtitle').textContent = 'Paiement annulé — vous pouvez réessayer.';
+      document.getElementById('main-subtitle').textContent = 'Paiement annulé — vous pouvez réessayer.';
     }
   </script>
 </body>
