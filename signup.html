@@ -198,7 +198,7 @@
       pro: 'price_1TbFiABTZNxndIAEEbZ3SaDc'
     };
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let selectedPlan = 'starter';
     let userData = {};
@@ -253,7 +253,7 @@
 
       try {
         // 1. Créer le compte Supabase
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error } = await sbClient.auth.signUp({
           email: userData.email,
           password: userData.password,
           options: {
@@ -268,7 +268,7 @@
         if (error) throw error;
 
         // 2. Appeler l'Edge Function pour créer la session Stripe
-        const session = await supabase.functions.invoke('create-checkout', {
+        const session = await sbClient.functions.invoke('create-checkout', {
           body: {
             priceId: PRICE_IDS[selectedPlan],
             email: userData.email,
