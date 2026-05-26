@@ -59,18 +59,19 @@ Deno.serve(async (req) => {
   const active = await hasActiveSubscription(user.id);
   if (!active) return json({ error: 'Subscription required' }, 403);
 
-  const clientName = user.user_metadata?.client_name as string | undefined;
+  const clientName = (user.user_metadata?.company_name ?? user.user_metadata?.client_name) as string | undefined;
+
+  // Sécurité : si aucun nom client n'est associé, on ne retourne rien
+  if (!clientName) return json({ records: [] });
   const atHeaders = {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
 
   if (req.method === 'GET') {
-    let url =
-      `https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}?sort%5B0%5D%5Bfield%5D=Heure%20d%27appel&sort%5B0%5D%5Bdirection%5D=desc`;
-    if (clientName) {
-      url += `&filterByFormula=${encodeURIComponent(`{Nom client}="${clientName}"`)}`;
-    }
+    const url =
+      `https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}?sort%5B0%5D%5Bfield%5D=Heure%20d%27appel&sort%5B0%5D%5Bdirection%5D=desc` +
+      `&filterByFormula=${encodeURIComponent(`{Nom client}="${clientName}"`)}` ;
 
     const res = await fetch(url, { headers: atHeaders });
     const data = await res.json();
