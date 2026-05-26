@@ -18,9 +18,9 @@ Deno.serve(async (req) => {
   try {
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2023-10-16' });
 
-    const { priceId, email, userId, successUrl, cancelUrl } = await req.json();
+    const { priceId, email, userId, plan, successUrl, cancelUrl } = await req.json();
 
-    if (!priceId || !email || !userId) return json({ error: 'Missing required fields' }, 400);
+    if (!priceId || !email || !userId || !plan) return json({ error: 'Missing required fields' }, 400);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -29,9 +29,9 @@ Deno.serve(async (req) => {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: successUrl,
       cancel_url: cancelUrl,
-      metadata: { userId, email },
+      metadata: { userId, email, plan },
       subscription_data: {
-        metadata: { userId, email },
+        metadata: { userId, email, plan },
       },
     });
 

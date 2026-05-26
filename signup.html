@@ -179,7 +179,16 @@
     sbClient.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         currentUserId = session.user.id;
-        // Afficher le step 3 (choix du plan)
+        // Si déjà abonné actif, aller directement au dashboard
+        const { data: profile } = await sbClient
+          .from('profiles')
+          .select('status')
+          .eq('id', currentUserId)
+          .single();
+        if (profile?.status === 'active') {
+          window.location.href = '/dashboard.html';
+          return;
+        }
         showStep(3);
       }
     });
@@ -304,8 +313,11 @@
       }
     }
 
-    // Message si retour depuis Stripe annulé
+    // Pré-sélection du plan depuis l'URL (?plan=starter ou ?plan=pro)
     const params = new URLSearchParams(window.location.search);
+    const planParam = params.get('plan');
+    if (planParam && PRICE_IDS[planParam]) selectPlan(planParam);
+
     if (params.get('payment') === 'cancelled') {
       document.getElementById('main-subtitle').textContent = 'Paiement annulé — vous pouvez réessayer.';
     }

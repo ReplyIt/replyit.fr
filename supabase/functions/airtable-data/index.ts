@@ -30,6 +30,19 @@ async function getUser(req: Request) {
   return user;
 }
 
+async function hasActiveSubscription(userId: string): Promise<boolean> {
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SB_SERVICE_ROLE_KEY')!,
+  );
+  const { data } = await supabase
+    .from('profiles')
+    .select('status')
+    .eq('id', userId)
+    .single();
+  return data?.status === 'active';
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -42,6 +55,9 @@ Deno.serve(async (req) => {
 
   const user = await getUser(req);
   if (!user) return json({ error: 'Unauthorized' }, 401);
+
+  const active = await hasActiveSubscription(user.id);
+  if (!active) return json({ error: 'Subscription required' }, 403);
 
   const clientName = user.user_metadata?.client_name as string | undefined;
   const atHeaders = {

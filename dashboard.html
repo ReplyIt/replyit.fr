@@ -356,6 +356,24 @@
       .nav-user { display: none; }
       thead th:nth-child(3), tbody td:nth-child(3) { display: none; }
     }
+
+    /* ── États de chargement / activation ── */
+    .center-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 2rem; height: 2rem; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+    .success-banner {
+      background: var(--success-bg);
+      border-bottom: 1px solid var(--success-border);
+      color: var(--success);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .success-banner button { background: none; border: none; color: var(--success); font-size: 1.25rem; line-height: 1; padding: 0 0.25rem; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -378,8 +396,13 @@
 
   <div class="page-content">
 
+    <!-- LOADING -->
+    <div id="state-loading" class="center-wrap">
+      <div class="spinner"></div>
+    </div>
+
     <!-- LOGIN -->
-    <div class="auth-wrap" id="authWrap">
+    <div id="state-login" class="auth-wrap" style="display:none">
       <div class="auth-card">
         <a href="index.html" class="auth-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
         <p class="auth-sub">Connectez-vous à votre espace client</p>
@@ -393,12 +416,67 @@
         </div>
         <button class="btn-auth" id="loginBtn" onclick="handleLogin()">Se connecter</button>
         <div class="auth-error" id="authError"></div>
-        <p class="auth-back">Pas encore client ? <a href="index.html">Découvrir ReplyIt →</a></p>
+        <p class="auth-back" style="margin-top:0.5rem">
+          <button onclick="showForgot()" style="color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;font-size:0.8125rem">Mot de passe oublié ?</button>
+        </p>
+        <p class="auth-back">Pas encore client ? <a href="signup.html">Créer un compte →</a></p>
+      </div>
+    </div>
+
+    <!-- MOT DE PASSE OUBLIÉ -->
+    <div id="state-forgot" class="auth-wrap" style="display:none">
+      <div class="auth-card">
+        <a href="index.html" class="auth-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
+        <p class="auth-sub">Réinitialisez votre mot de passe</p>
+        <div class="form-group">
+          <label for="forgotEmail">Adresse email</label>
+          <input type="email" id="forgotEmail" placeholder="vous@email.fr" autocomplete="email">
+        </div>
+        <button class="btn-auth" id="forgotBtn" onclick="handleForgot()">Envoyer le lien →</button>
+        <div class="auth-error" id="forgotError"></div>
+        <div id="forgotSuccess" style="display:none;background:var(--success-bg);border:1px solid var(--success-border);border-radius:var(--radius);padding:0.75rem 1rem;font-size:0.875rem;color:var(--success);margin-top:0.75rem">
+          Lien envoyé ! Vérifiez votre boîte mail (et vos spams).
+        </div>
+        <p class="auth-back" style="margin-top:1rem">
+          <button onclick="showState('state-login')" style="color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;font-size:0.8125rem">← Retour à la connexion</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- PENDING (authentifié mais abonnement non actif) -->
+    <div id="state-pending" class="auth-wrap" style="display:none">
+      <div class="auth-card" style="text-align:center">
+        <a href="index.html" class="auth-logo" aria-label="Retour à l'accueil ReplyIt" style="display:block;margin-bottom:0.5rem">Reply<span>It</span></a>
+        <div style="font-size:2.5rem;margin:1rem 0">🔒</div>
+        <h2 style="font-size:1.1rem;margin-bottom:0.75rem">Accès non activé</h2>
+        <p id="pending-msg" style="font-size:0.875rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6">
+          Votre compte existe mais votre abonnement n'est pas encore actif.
+        </p>
+        <a href="signup.html" class="btn-auth" style="display:block;text-decoration:none;text-align:center">Finaliser mon abonnement →</a>
+        <p class="auth-back">Un problème ? <a href="mailto:contact@replyit.fr">contact@replyit.fr</a></p>
+        <p class="auth-back" style="margin-top:0.5rem">
+          <button onclick="handleLogout()" style="color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;font-size:0.8125rem">Se déconnecter</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- ACTIVATING (retour Stripe, webhook en attente) -->
+    <div id="state-activating" class="auth-wrap" style="display:none">
+      <div class="auth-card" style="text-align:center">
+        <div class="spinner" style="margin:0 auto 1.5rem"></div>
+        <h2 style="font-size:1.1rem;margin-bottom:0.5rem">Activation en cours…</h2>
+        <p style="font-size:0.875rem;color:var(--text-muted);line-height:1.6">
+          Votre paiement a été reçu. Nous activons votre compte, cela prend quelques secondes.
+        </p>
       </div>
     </div>
 
     <!-- DASHBOARD -->
-    <div class="app" id="app">
+    <div id="app" style="display:none;flex-direction:column;min-height:100vh">
+      <div id="success-banner" class="success-banner" style="display:none">
+        🎉 Bienvenue ! Votre compte est activé. Vous avez accès à votre tableau de bord.
+        <button onclick="this.parentElement.style.display='none'" aria-label="Fermer">×</button>
+      </div>
       <nav class="topnav">
         <a href="index.html" class="nav-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
         <div class="nav-right">
@@ -447,125 +525,201 @@
   </div><!-- /page-content -->
 
   <script>
-    const SUPABASE_URL = 'https://yjaycdraeernpwqpbvco.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_0jcQHQwepH5B_tV7nZAbOw_2reRG0-z';
-    const API_URL      = `${SUPABASE_URL}/functions/v1/airtable-data`;
+    const SUPABASE_URL  = 'https://yjaycdraeernpwqpbvco.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqYXljZHJhZWVybnB3cXBidmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NjIyNjcsImV4cCI6MjA5NTIzODI2N30.2sUDp_ERuiVaVtD0TvemuuADsKrJ8TXeBLXfhwPnP5I';
+    const API_URL       = `${SUPABASE_URL}/functions/v1/airtable-data`;
 
     const { createClient } = supabase;
-    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
     let currentUser = null;
-    let clientName  = null;
 
-    async function apiHeaders() {
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session) throw new Error('Session expirée');
-      return {
-        Authorization: `Bearer ${session.access_token}`,
-        apikey: SUPABASE_KEY,
-        'Content-Type': 'application/json',
-      };
+    // ── State machine ─────────────────────────────────────────────────────────
+    const STATES = ['state-loading', 'state-login', 'state-forgot', 'state-pending', 'state-activating', 'app'];
+    function showState(id) {
+      STATES.forEach(s => {
+        const el = document.getElementById(s);
+        if (el) el.style.display = (s === id) ? 'flex' : 'none';
+      });
     }
 
-    // Enter key
+    // ── Boot ──────────────────────────────────────────────────────────────────
+    async function init() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { showState('state-login'); return; }
+      currentUser = session.user;
+      await checkAndRoute();
+    }
+
+    async function checkAndRoute() {
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('status')
+        .eq('id', currentUser.id)
+        .single();
+
+      const paymentReturn = new URLSearchParams(window.location.search).get('payment') === 'success';
+
+      if (profile?.status === 'active') {
+        showDashboard(paymentReturn);
+      } else if (paymentReturn) {
+        showState('state-activating');
+        pollForActivation();
+      } else {
+        showState('state-pending');
+      }
+    }
+
+    async function pollForActivation(attempts = 0) {
+      if (attempts >= 20) {
+        document.getElementById('pending-msg').textContent =
+          "Votre paiement a été reçu mais l'activation prend plus de temps que prévu. Rafraîchissez la page dans quelques secondes.";
+        showState('state-pending');
+        return;
+      }
+      await new Promise(r => setTimeout(r, 2000));
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('status')
+        .eq('id', currentUser.id)
+        .single();
+      if (profile?.status === 'active') {
+        showDashboard(true);
+      } else {
+        pollForActivation(attempts + 1);
+      }
+    }
+
+    // ── Login ─────────────────────────────────────────────────────────────────
     document.getElementById('loginPassword').addEventListener('keydown', e => {
       if (e.key === 'Enter') handleLogin();
-    });
-
-    // Session existante
-    sb.auth.getSession().then(({ data }) => {
-      if (data.session) { currentUser = data.session.user; showApp(); }
     });
 
     async function handleLogin() {
       const email = document.getElementById('loginEmail').value.trim();
       const pass  = document.getElementById('loginPassword').value;
       const btn   = document.getElementById('loginBtn');
-      const err   = document.getElementById('authError');
 
-      if (!email || !pass) { showErr('Veuillez remplir tous les champs.'); return; }
+      if (!email || !pass) { showLoginErr('Veuillez remplir tous les champs.'); return; }
 
       btn.disabled = true;
       btn.textContent = 'Connexion…';
-      err.classList.remove('show');
+      document.getElementById('authError').classList.remove('show');
 
-      let data, error;
       try {
-        ({ data, error } = await sb.auth.signInWithPassword({ email, password: pass }));
+        const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+        if (error) {
+          if (error.message?.includes('Email not confirmed')) {
+            showLoginErr('Confirmez votre email avant de vous connecter (vérifiez vos spams).');
+          } else {
+            showLoginErr('Email ou mot de passe incorrect.');
+          }
+          btn.disabled = false;
+          btn.textContent = 'Se connecter';
+          return;
+        }
+        currentUser = data.user;
+        await checkAndRoute();
       } catch (e) {
-        showErr('Impossible de joindre le serveur. Vérifiez votre connexion ou réessayez plus tard.');
+        showLoginErr('Serveur injoignable — vérifiez votre connexion.');
         console.error(e);
         btn.disabled = false;
         btn.textContent = 'Se connecter';
-        return;
       }
-
-      if (error) {
-        if (error.message?.includes('fetch') || error.name === 'AuthRetryableFetchError') {
-          showErr('Serveur injoignable — la configuration du site est peut‑être incorrecte.');
-        } else if (error.message?.includes('Email not confirmed')) {
-          showErr('Confirmez votre email avant de vous connecter (vérifiez votre boîte mail).');
-        } else {
-          showErr('Email ou mot de passe incorrect.');
-        }
-        console.error('Auth:', error.message);
-        btn.disabled = false;
-        btn.textContent = 'Se connecter';
-        return;
-      }
-
-      currentUser = data.user;
-      showApp();
     }
 
-    function showErr(msg) {
+    function showLoginErr(msg) {
       const el = document.getElementById('authError');
       el.textContent = msg;
       el.classList.add('show');
     }
 
+    function showForgot() {
+      document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value;
+      document.getElementById('forgotError').classList.remove('show');
+      document.getElementById('forgotSuccess').style.display = 'none';
+      document.getElementById('forgotBtn').disabled = false;
+      document.getElementById('forgotBtn').textContent = 'Envoyer le lien →';
+      showState('state-forgot');
+    }
+
+    async function handleForgot() {
+      const email = document.getElementById('forgotEmail').value.trim();
+      const btn   = document.getElementById('forgotBtn');
+      const err   = document.getElementById('forgotError');
+
+      if (!email) { err.textContent = 'Entrez votre adresse email.'; err.classList.add('show'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Envoi…';
+      err.classList.remove('show');
+
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/dashboard.html',
+      });
+
+      if (error) {
+        err.textContent = 'Une erreur est survenue, réessayez.';
+        err.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Envoyer le lien →';
+      } else {
+        document.getElementById('forgotSuccess').style.display = 'block';
+      }
+    }
+
+    // ── Dashboard ─────────────────────────────────────────────────────────────
+    function showDashboard(showBanner = false) {
+      document.getElementById('navUser').textContent = currentUser.email;
+      const clientName = currentUser.user_metadata?.client_name;
+      if (clientName) {
+        document.getElementById('pageSub').textContent =
+          `Bienvenue ${clientName} — vos appels manqués et réponses prospects`;
+      }
+      if (showBanner) {
+        document.getElementById('success-banner').style.display = 'flex';
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+      showState('app');
+      loadData();
+    }
+
     async function handleLogout() {
       await sb.auth.signOut();
       currentUser = null;
-      document.getElementById('app').classList.remove('show');
-      document.getElementById('authWrap').style.display = 'flex';
       document.getElementById('loginEmail').value = '';
       document.getElementById('loginPassword').value = '';
-      document.getElementById('loginBtn').textContent = 'Se connecter';
       document.getElementById('loginBtn').disabled = false;
+      document.getElementById('loginBtn').textContent = 'Se connecter';
+      document.getElementById('authError').classList.remove('show');
+      showState('state-login');
     }
 
-    function showApp() {
-      document.getElementById('authWrap').style.display = 'none';
-      document.getElementById('app').classList.add('show');
-      document.getElementById('navUser').textContent = currentUser.email;
-      clientName = currentUser.user_metadata?.client_name || null;
-      if (clientName) {
-        document.getElementById('pageSub').textContent = `Bienvenue ${clientName} — vos appels manqués et réponses prospects`;
-      }
-      loadData();
+    // ── Data ──────────────────────────────────────────────────────────────────
+    async function apiHeaders() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) throw new Error('Session expirée');
+      return {
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: SUPABASE_ANON,
+        'Content-Type': 'application/json',
+      };
     }
 
     async function loadData() {
       document.getElementById('tableContent').innerHTML = '<div class="loading">Chargement…</div>';
-
       try {
         const res  = await fetch(API_URL, { headers: await apiHeaders() });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || 'API error');
         const recs = json.records || [];
 
-        const total   = recs.length;
-        const replies = recs.filter(r => r.fields['Message prospect']?.trim()).length;
-        const newC    = recs.filter(r => !r.fields['Statut'] || r.fields['Statut'] === 'Nouveau').length;
-        const called  = recs.filter(r => r.fields['Statut'] === 'Rappelé').length;
+        document.getElementById('statTotal').textContent   = recs.length;
+        document.getElementById('statReplies').textContent = recs.filter(r => r.fields['Message prospect']?.trim()).length;
+        document.getElementById('statNew').textContent     = recs.filter(r => !r.fields['Statut'] || r.fields['Statut'] === 'Nouveau').length;
+        document.getElementById('statCalled').textContent  = recs.filter(r => r.fields['Statut'] === 'Rappelé').length;
 
-        document.getElementById('statTotal').textContent   = total;
-        document.getElementById('statReplies').textContent = replies;
-        document.getElementById('statNew').textContent     = newC;
-        document.getElementById('statCalled').textContent  = called;
-
-        if (total === 0) {
+        if (recs.length === 0) {
           document.getElementById('tableContent').innerHTML = `
             <div class="empty-state">
               <div class="empty-icon">📵</div>
@@ -577,21 +731,20 @@
 
         let rows = '';
         recs.forEach(r => {
-          const f       = r.fields;
-          const num     = f['Numéro client'] || f['Name'] || '—';
-          const time    = f["Heure d'appel"] ? fmtDate(f["Heure d'appel"]) : '—';
-          const msg     = f['Message prospect'] || '';
-          const statut  = f['Statut'] || 'Nouveau';
-
+          const f      = r.fields;
+          const num    = esc(f['Numéro client'] || f['Name'] || '—');
+          const time   = esc(f["Heure d'appel"] ? fmtDate(f["Heure d'appel"]) : '—');
+          const msg    = esc(f['Message prospect'] || '');
+          const statut = f['Statut'] || 'Nouveau';
           rows += `<tr>
             <td class="td-num">${num}</td>
             <td class="td-time">${time}</td>
             <td class="td-msg ${msg ? 'has-msg' : ''}">${msg || '<span style="opacity:.45;font-style:italic">En attente de réponse</span>'}</td>
             <td>
-              <select class="status-sel" onchange="updateStatus('${r.id}', this.value)">
-                <option value="Nouveau"  ${statut==='Nouveau'  ?'selected':''}>🔴 Nouveau</option>
-                <option value="Rappelé"  ${statut==='Rappelé'  ?'selected':''}>🟢 Rappelé</option>
-                <option value="Fermé"    ${statut==='Fermé'    ?'selected':''}>⚫ Fermé</option>
+              <select class="status-sel" data-record-id="${esc(r.id)}">
+                <option value="Nouveau" ${statut==='Nouveau'?'selected':''}>🔴 Nouveau</option>
+                <option value="Rappelé" ${statut==='Rappelé'?'selected':''}>🟢 Rappelé</option>
+                <option value="Fermé"   ${statut==='Fermé'  ?'selected':''}>⚫ Fermé</option>
               </select>
             </td>
           </tr>`;
@@ -608,18 +761,30 @@
             <tbody>${rows}</tbody>
           </table>`;
 
-      } catch(e) {
-        document.getElementById('tableContent').innerHTML = '<div class="loading">Erreur de chargement — actualisez la page.</div>';
+      } catch (e) {
+        document.getElementById('tableContent').innerHTML =
+          '<div class="loading">Erreur de chargement — actualisez la page.</div>';
         console.error(e);
       }
     }
 
-    async function updateStatus(id, val) {
-      await fetch(API_URL, {
-        method: 'PATCH',
-        headers: await apiHeaders(),
-        body: JSON.stringify({ id, statut: val }),
-      });
+    // Event delegation — évite l'injection via onchange inline
+    document.getElementById('tableContent').addEventListener('change', async e => {
+      const sel = e.target.closest('select[data-record-id]');
+      if (!sel) return;
+      try {
+        await fetch(API_URL, {
+          method: 'PATCH',
+          headers: await apiHeaders(),
+          body: JSON.stringify({ id: sel.dataset.recordId, statut: sel.value }),
+        });
+      } catch (e) { console.error(e); }
+    });
+
+    function esc(str) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(String(str ?? '')));
+      return d.innerHTML;
     }
 
     function fmtDate(iso) {
@@ -628,6 +793,8 @@
       return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' })
            + ' · ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
     }
+
+    init();
   </script>
 </body>
 </html>
