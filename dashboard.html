@@ -351,6 +351,30 @@
 
     .loading { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.875rem; }
 
+    /* ── Stat cards avec icône ── */
+    .stat-card { display: flex; flex-direction: column; justify-content: space-between; }
+    .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+    .stat-top .stat-label { margin-bottom: 0; }
+    .stat-icon { font-size: 1.25rem; line-height: 1; opacity: 0.7; }
+    .stat-value { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; color: var(--text); line-height: 1; }
+
+    /* ── Statut select coloré ── */
+    select.status-sel.s-new       { color: var(--accent);  border-color: #bae6fd; background-color: #f0f9ff; }
+    select.status-sel.s-called    { color: #92400e; border-color: #fde68a; background-color: #fefce8; }
+    select.status-sel.s-converted { color: var(--success); border-color: var(--success-border); background-color: var(--success-bg); }
+    select.status-sel.s-closed    { color: var(--text-muted); border-color: var(--border); background-color: var(--bg-elevated); }
+
+    /* ── Ligne nouveau (< 24h) ── */
+    tr.row-new { background: linear-gradient(90deg, rgba(3,105,161,0.04) 0%, transparent 100%); }
+    .badge-new-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-right: 0.4rem; vertical-align: middle; flex-shrink: 0; }
+    .td-time-wrap { display: flex; flex-direction: column; gap: 0.15rem; }
+    .td-time-relative { font-size: 0.75rem; font-weight: 600; color: var(--accent); }
+    .td-time-abs { font-size: 0.8125rem; color: var(--text-muted); }
+
+    /* ── Message tronqué ── */
+    .btn-expand { background: none; border: none; color: var(--accent); font-size: 0.8125rem; font-weight: 600; cursor: pointer; padding: 0; font-family: var(--font); }
+    .btn-expand:hover { text-decoration: underline; }
+
     /* Call link */
     .td-num a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border-hover); }
     .td-num a:hover { color: var(--accent); border-bottom-color: var(--accent); }
@@ -506,26 +530,30 @@
 
       <main class="main">
         <div class="page-header">
-          <h1 class="page-title">Tableau de bord</h1>
+          <h1 class="page-title" id="pageTitle">Tableau de bord</h1>
           <p class="page-sub" id="pageSub">Vos appels manqués et réponses prospects</p>
         </div>
 
         <div class="stats-row">
           <div class="stat-card">
-            <div class="stat-label">Appels manqués</div>
+            <div class="stat-top"><span class="stat-label">Appels manqués</span><span class="stat-icon">📵</span></div>
             <div class="stat-value blue" id="statTotal">—</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Réponses reçues</div>
+            <div class="stat-top"><span class="stat-label">Réponses reçues</span><span class="stat-icon">💬</span></div>
             <div class="stat-value green" id="statReplies">—</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">À rappeler</div>
+            <div class="stat-top"><span class="stat-label">À rappeler</span><span class="stat-icon">🔔</span></div>
             <div class="stat-value" id="statNew">—</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Convertis</div>
+            <div class="stat-top"><span class="stat-label">Convertis</span><span class="stat-icon">🏆</span></div>
             <div class="stat-value green" id="statCalled">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-top"><span class="stat-label">Taux de conversion</span><span class="stat-icon">📈</span></div>
+            <div class="stat-value blue" id="statRate">—</div>
           </div>
         </div>
 
@@ -688,14 +716,63 @@
       }
     }
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function formatPhone(raw) {
+      if (!raw) return '—';
+      const clean = String(raw).replace(/\s+/g, '');
+      if (/^\+33\d{9}$/.test(clean)) {
+        const local = '0' + clean.slice(3);
+        return local.replace(/(\d{2})/g, '$1 ').trim();
+      }
+      return raw;
+    }
+
+    function fmtRelative(iso) {
+      if (!iso) return null;
+      const diff    = Date.now() - new Date(iso).getTime();
+      const minutes = Math.floor(diff / 60000);
+      const hours   = Math.floor(diff / 3600000);
+      if (minutes < 1)  return 'À l\'instant';
+      if (minutes < 60) return `Il y a ${minutes}min`;
+      if (hours   < 24) return `Il y a ${hours}h`;
+      if (hours   < 48) return 'Hier';
+      return null;
+    }
+
+    function isRecent(iso) {
+      return iso && (Date.now() - new Date(iso).getTime()) < 86400000;
+    }
+
+    function truncateMsg(text, max = 90) {
+      if (!text) return '<span style="opacity:.45;font-style:italic">En attente de réponse</span>';
+      if (text.length <= max) return esc(text);
+      return `<span class="msg-short">${esc(text.slice(0, max))}… <button class="btn-expand">voir plus</button></span><span class="msg-full" style="display:none">${esc(text)}</span>`;
+    }
+
+    function statusCls(statut) {
+      if (statut === 'À rappeler') return 's-new';
+      if (statut === 'Rappelé')    return 's-called';
+      if (statut === 'Converti')   return 's-converted';
+      if (statut === 'Sans suite') return 's-closed';
+      return '';
+    }
+
     // ── Dashboard ─────────────────────────────────────────────────────────────
     function showDashboard(showBanner = false) {
       document.getElementById('navUser').textContent = currentUser.email;
+
       const clientName = currentUser.user_metadata?.client_name;
-      if (clientName) {
-        document.getElementById('pageSub').textContent =
-          `Bienvenue ${clientName} — vos appels manqués et réponses prospects`;
-      }
+      const firstName  = clientName ? clientName.split(' ')[0] : null;
+      const DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+      const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+      const now = new Date();
+      const dateStr = `${DAYS[now.getDay()]} ${now.getDate()} ${MONTHS[now.getMonth()]}`;
+
+      document.getElementById('pageTitle').textContent = firstName ? `Bonjour ${firstName} 👋` : 'Tableau de bord';
+      const sub = document.getElementById('pageSub');
+      sub.textContent    = dateStr;
+      sub.dataset.date   = dateStr;
+
       if (showBanner) {
         document.getElementById('success-banner').style.display = 'flex';
         window.history.replaceState({}, '', window.location.pathname);
@@ -727,14 +804,32 @@
     }
 
     function updateStats() {
-      document.getElementById('statTotal').textContent   = allRecords.length;
-      document.getElementById('statReplies').textContent = allRecords.filter(r => r.fields['Message prospect']?.trim()).length;
-      document.getElementById('statNew').textContent     = allRecords.filter(r => !r.fields['Statut'] || r.fields['Statut'] === 'À rappeler').length;
-      document.getElementById('statCalled').textContent  = allRecords.filter(r => r.fields['Statut'] === 'Converti').length;
+      const total     = allRecords.length;
+      const replies   = allRecords.filter(r => r.fields['Message prospect']?.trim()).length;
+      const toCall    = allRecords.filter(r => !r.fields['Statut'] || r.fields['Statut'] === 'À rappeler').length;
+      const converted = allRecords.filter(r => r.fields['Statut'] === 'Converti').length;
+      const rate      = total > 0 ? Math.round((converted / total) * 100) : 0;
+      const todayCount = allRecords.filter(r => isRecent(r.fields["Heure d'appel"])).length;
+
+      document.getElementById('statTotal').textContent   = total;
+      document.getElementById('statReplies').textContent = replies;
+      document.getElementById('statNew').textContent     = toCall;
+      document.getElementById('statCalled').textContent  = converted;
+      document.getElementById('statRate').textContent    = rate + '%';
+
+      // Sous-titre dynamique
+      const sub     = document.getElementById('pageSub');
+      const dateStr = sub.dataset.date || '';
+      sub.textContent = todayCount > 0
+        ? `${dateStr} · ${todayCount} nouvel${todayCount > 1 ? 's' : ''} appel${todayCount > 1 ? 's' : ''} aujourd'hui`
+        : dateStr;
     }
 
     async function loadData() {
+      const btn = document.querySelector('.btn-refresh');
+      if (btn) { btn.disabled = true; btn.textContent = '↻ Actualisation…'; }
       document.getElementById('tableContent').innerHTML = '<div class="loading">Chargement…</div>';
+
       try {
         const res  = await fetch(API_URL, { headers: await apiHeaders() });
         const json = await res.json();
@@ -742,11 +837,7 @@
         allRecords = json.records || [];
 
         // Tri : plus récents en premier
-        allRecords.sort((a, b) => {
-          const da = new Date(a.fields["Heure d'appel"] || 0);
-          const db = new Date(b.fields["Heure d'appel"] || 0);
-          return db - da;
-        });
+        allRecords.sort((a, b) => new Date(b.fields["Heure d'appel"] || 0) - new Date(a.fields["Heure d'appel"] || 0));
 
         updateStats();
 
@@ -762,25 +853,38 @@
 
         let rows = '';
         allRecords.forEach(r => {
-          const f        = r.fields;
-          const rawNum   = f['Numéro client'] || f['Name'] || '';
-          const numEsc   = esc(rawNum);
-          const numCell  = rawNum
-            ? `<a href="tel:${numEsc}" title="Appeler ${numEsc}">${numEsc}</a>`
+          const f      = r.fields;
+          const rawNum = f['Numéro client'] || f['Name'] || '';
+          const fmtNum = formatPhone(rawNum);
+          const numEsc = esc(rawNum);
+          const numCell = rawNum
+            ? `<a href="tel:${numEsc}" title="Appeler ${fmtNum}">${esc(fmtNum)}</a>`
             : '—';
-          const time   = esc(f["Heure d'appel"] ? fmtDate(f["Heure d'appel"]) : '—');
-          const msg    = esc(f['Message prospect'] || '');
-          // Migration douce : anciennes valeurs Airtable → nouvelles
+
+          const iso      = f["Heure d'appel"];
+          const relative = iso ? fmtRelative(iso) : null;
+          const absolute = iso ? fmtDate(iso) : '—';
+          const recent   = isRecent(iso);
+          const timeCell = relative
+            ? `<div class="td-time-wrap"><span class="td-time-relative">${esc(relative)}</span><span class="td-time-abs">${esc(absolute)}</span></div>`
+            : `<span class="td-time-abs">${esc(absolute)}</span>`;
+
+          const rawMsg = f['Message prospect'] || '';
+          const msgCell = `<span class="${rawMsg ? 'has-msg' : ''}">${truncateMsg(rawMsg)}</span>`;
+
+          // Migration douce : anciennes valeurs → nouvelles
           const rawStatut = f['Statut'];
           const statut = rawStatut === 'Nouveau' ? 'À rappeler'
                        : rawStatut === 'Fermé'   ? 'Sans suite'
                        : rawStatut              || 'À rappeler';
-          rows += `<tr class="${statut === 'Sans suite' ? 'row-closed' : ''}">
-            <td class="td-num">${numCell}</td>
-            <td class="td-time">${time}</td>
-            <td class="td-msg ${msg ? 'has-msg' : ''}">${msg || '<span style="opacity:.45;font-style:italic">En attente de réponse</span>'}</td>
+          const cls = statusCls(statut);
+
+          rows += `<tr class="${statut === 'Sans suite' ? 'row-closed' : recent ? 'row-new' : ''}">
+            <td class="td-num">${recent ? '<span class="badge-new-dot"></span>' : ''}${numCell}</td>
+            <td class="td-time">${timeCell}</td>
+            <td class="td-msg">${msgCell}</td>
             <td>
-              <select class="status-sel" data-record-id="${esc(r.id)}">
+              <select class="status-sel ${cls}" data-record-id="${esc(r.id)}">
                 <option value="À rappeler" ${statut==='À rappeler'?'selected':''}>🔴 À rappeler</option>
                 <option value="Rappelé"    ${statut==='Rappelé'   ?'selected':''}>🟡 Rappelé</option>
                 <option value="Converti"   ${statut==='Converti'  ?'selected':''}>🟢 Converti</option>
@@ -807,8 +911,21 @@
         document.getElementById('tableContent').innerHTML =
           '<div class="loading">Erreur de chargement — actualisez la page.</div>';
         console.error(e);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '↻ Actualiser'; }
       }
     }
+
+    // Event delegation — "voir plus" sur messages tronqués
+    document.getElementById('tableContent').addEventListener('click', e => {
+      const btn = e.target.closest('.btn-expand');
+      if (!btn) return;
+      const short = btn.closest('.msg-short');
+      if (!short) return;
+      const full = short.nextElementSibling;
+      if (full) full.style.display = 'inline';
+      short.style.display = 'none';
+    });
 
     // Event delegation — mise à jour statut avec feedback visuel
     document.getElementById('tableContent').addEventListener('change', async e => {
@@ -837,9 +954,13 @@
         const rec = allRecords.find(r => r.id === recordId);
         if (rec) rec.fields['Statut'] = newStatut;
 
-        // Mise à jour visuelle de la ligne
+        // Mise à jour visuelle de la ligne et du select
         const row = sel.closest('tr');
-        if (row) row.classList.toggle('row-closed', newStatut === 'Sans suite');
+        if (row) {
+          row.classList.toggle('row-closed', newStatut === 'Sans suite');
+          row.classList.toggle('row-new',    false);
+        }
+        sel.className = `status-sel ${statusCls(newStatut)}`;
 
         // Mise à jour des stats KPI sans recharger
         updateStats();
