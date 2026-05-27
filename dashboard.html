@@ -739,7 +739,8 @@
         showState('state-activating');
         pollForActivation();
       } else {
-        showState('state-pending');
+        // Not yet active — send back to signup step 3 to complete payment
+        window.location.href = '/signup';
       }
     }
 
