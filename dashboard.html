@@ -447,7 +447,7 @@
     <!-- LOGIN -->
     <div id="state-login" class="auth-wrap" style="display:none">
       <div class="auth-card">
-        <a href="index.html" class="auth-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
+        <a href="/" class="auth-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
         <p class="auth-sub">Connectez-vous à votre espace client</p>
         <div class="form-group">
           <label for="loginEmail">Adresse email</label>
@@ -462,14 +462,14 @@
         <p class="auth-back" style="margin-top:0.5rem">
           <button onclick="showForgot()" style="color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;font-size:0.8125rem">Mot de passe oublié ?</button>
         </p>
-        <p class="auth-back">Pas encore client ? <a href="signup.html">Créer un compte →</a></p>
+        <p class="auth-back">Pas encore client ? <a href="/signup">Créer un compte →</a></p>
       </div>
     </div>
 
     <!-- MOT DE PASSE OUBLIÉ -->
     <div id="state-forgot" class="auth-wrap" style="display:none">
       <div class="auth-card">
-        <a href="index.html" class="auth-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
+        <a href="/" class="auth-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
         <p class="auth-sub">Réinitialisez votre mot de passe</p>
         <div class="form-group">
           <label for="forgotEmail">Adresse email</label>
@@ -489,13 +489,13 @@
     <!-- PENDING (authentifié mais abonnement non actif) -->
     <div id="state-pending" class="auth-wrap" style="display:none">
       <div class="auth-card" style="text-align:center">
-        <a href="index.html" class="auth-logo" aria-label="Retour à l'accueil ReplyIt" style="display:block;margin-bottom:0.5rem">Reply<span>It</span></a>
+        <a href="/" class="auth-logo" aria-label="Retour à l'accueil ReplyIt" style="display:block;margin-bottom:0.5rem">Reply<span>It</span></a>
         <div style="font-size:2.5rem;margin:1rem 0">🔒</div>
         <h2 style="font-size:1.1rem;margin-bottom:0.75rem">Accès non activé</h2>
         <p id="pending-msg" style="font-size:0.875rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6">
           Votre compte existe mais votre abonnement n'est pas encore actif.
         </p>
-        <a href="signup.html" class="btn-auth" style="display:block;text-decoration:none;text-align:center">Finaliser mon abonnement →</a>
+        <a href="/signup" class="btn-auth" style="display:block;text-decoration:none;text-align:center">Finaliser mon abonnement →</a>
         <p class="auth-back">Un problème ? <a href="mailto:contact@replyit.fr">contact@replyit.fr</a></p>
         <p class="auth-back" style="margin-top:0.5rem">
           <button onclick="handleLogout()" style="color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;font-size:0.8125rem">Se déconnecter</button>
@@ -521,7 +521,7 @@
         <button onclick="this.parentElement.style.display='none'" aria-label="Fermer">×</button>
       </div>
       <nav class="topnav">
-        <a href="index.html" class="nav-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
+        <a href="/" class="nav-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
         <div class="nav-right">
           <span class="nav-user" id="navUser"></span>
           <button class="btn-logout" onclick="handleLogout()">Déconnexion</button>
@@ -703,7 +703,7 @@
       err.classList.remove('show');
 
       const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/dashboard.html',
+        redirectTo: window.location.origin + '/dashboard',
       });
 
       if (error) {

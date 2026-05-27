@@ -127,7 +127,7 @@
       </div>
       <div class="error" id="error1"></div>
       <button class="btn" onclick="registerUser()">Continuer →</button>
-      <div class="login-link">Déjà un compte ? <a href="/dashboard.html">Se connecter</a></div>
+      <div class="login-link">Déjà un compte ? <a href="/dashboard">Se connecter</a></div>
     </div>
 
     <!-- Step 2 : vérification email -->
@@ -186,7 +186,7 @@
           .eq('id', currentUserId)
           .single();
         if (profile?.status === 'active') {
-          window.location.href = '/dashboard.html';
+          window.location.href = '/dashboard';
           return;
         }
         showStep(3);
@@ -244,7 +244,7 @@
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin + '/signup.html',
+            emailRedirectTo: window.location.origin + '/signup',
             data: { full_name: fullname, company_name: company }
           }
         });
@@ -298,8 +298,8 @@
             email: sessionData.session.user.email,
             userId: currentUserId,
             plan: selectedPlan,
-            successUrl: window.location.origin + '/dashboard.html?payment=success',
-            cancelUrl: window.location.origin + '/signup.html?payment=cancelled',
+            successUrl: window.location.origin + '/dashboard?payment=success',
+            cancelUrl: window.location.origin + '/signup?payment=cancelled',
           }
         });
 
