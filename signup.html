@@ -185,18 +185,21 @@
       if (!session) return; // no session → step1 stays visible
       currentUserId = session.user.id;
       try {
-        const { data: profile } = await sbClient
+        const { data: profile, error: profileErr } = await sbClient
           .from('profiles')
           .select('status')
           .eq('id', currentUserId)
           .single();
+        console.log('[profile]', profile?.status, profileErr?.message);
         if (profile?.status === 'active') {
+          console.log('[→ dashboard]');
           window.location.href = '/dashboard';
           return;
         }
       } catch (e) {
-        console.error('routeSession:', e);
+        console.error('[routeSession catch]', e);
       }
+      console.log('[→ showStep 3]');
       showStep(3);
     }
 
