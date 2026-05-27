@@ -351,6 +351,25 @@
 
     .loading { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.875rem; }
 
+    /* Call link */
+    .td-num a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border-hover); }
+    .td-num a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* Closed row */
+    tr.row-closed { opacity: 0.45; }
+    tr.row-closed:hover { opacity: 0.65; }
+
+    /* Status select feedback */
+    select.status-sel.is-saving { opacity: 0.6; cursor: wait; }
+    select.status-sel.is-saved  { border-color: var(--success) !important; box-shadow: 0 0 0 2px var(--success-bg); transition: border-color 0.1s, box-shadow 0.1s; }
+    select.status-sel.is-error  { border-color: var(--danger)  !important; box-shadow: 0 0 0 2px var(--danger-bg);  }
+
+    /* Last updated */
+    .table-foot { padding: 0.75rem 1.5rem; border-top: 1px solid var(--border); background: var(--bg-elevated); font-size: 0.75rem; color: var(--text-muted); text-align: right; }
+
+    @keyframes dot-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .live-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); margin-right: 0.35rem; animation: dot-pulse 2s ease-in-out infinite; vertical-align: middle; }
+
     @media (max-width: 768px) {
       .stats-row { grid-template-columns: repeat(2, 1fr); }
       .nav-user { display: none; }
@@ -533,6 +552,7 @@
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
     let currentUser = null;
+    let allRecords  = [];   // in-memory cache for live stat updates
 
     // ── State machine ─────────────────────────────────────────────────────────
     const STATES = ['state-loading', 'state-login', 'state-forgot', 'state-pending', 'state-activating', 'app'];
@@ -706,20 +726,31 @@
       };
     }
 
+    function updateStats() {
+      document.getElementById('statTotal').textContent   = allRecords.length;
+      document.getElementById('statReplies').textContent = allRecords.filter(r => r.fields['Message prospect']?.trim()).length;
+      document.getElementById('statNew').textContent     = allRecords.filter(r => !r.fields['Statut'] || r.fields['Statut'] === 'Nouveau').length;
+      document.getElementById('statCalled').textContent  = allRecords.filter(r => r.fields['Statut'] === 'Rappelé').length;
+    }
+
     async function loadData() {
       document.getElementById('tableContent').innerHTML = '<div class="loading">Chargement…</div>';
       try {
         const res  = await fetch(API_URL, { headers: await apiHeaders() });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || 'API error');
-        const recs = json.records || [];
+        allRecords = json.records || [];
 
-        document.getElementById('statTotal').textContent   = recs.length;
-        document.getElementById('statReplies').textContent = recs.filter(r => r.fields['Message prospect']?.trim()).length;
-        document.getElementById('statNew').textContent     = recs.filter(r => !r.fields['Statut'] || r.fields['Statut'] === 'Nouveau').length;
-        document.getElementById('statCalled').textContent  = recs.filter(r => r.fields['Statut'] === 'Rappelé').length;
+        // Tri : plus récents en premier
+        allRecords.sort((a, b) => {
+          const da = new Date(a.fields["Heure d'appel"] || 0);
+          const db = new Date(b.fields["Heure d'appel"] || 0);
+          return db - da;
+        });
 
-        if (recs.length === 0) {
+        updateStats();
+
+        if (allRecords.length === 0) {
           document.getElementById('tableContent').innerHTML = `
             <div class="empty-state">
               <div class="empty-icon">📵</div>
@@ -730,14 +761,18 @@
         }
 
         let rows = '';
-        recs.forEach(r => {
-          const f      = r.fields;
-          const num    = esc(f['Numéro client'] || f['Name'] || '—');
+        allRecords.forEach(r => {
+          const f        = r.fields;
+          const rawNum   = f['Numéro client'] || f['Name'] || '';
+          const numEsc   = esc(rawNum);
+          const numCell  = rawNum
+            ? `<a href="tel:${numEsc}" title="Appeler ${numEsc}">${numEsc}</a>`
+            : '—';
           const time   = esc(f["Heure d'appel"] ? fmtDate(f["Heure d'appel"]) : '—');
           const msg    = esc(f['Message prospect'] || '');
           const statut = f['Statut'] || 'Nouveau';
-          rows += `<tr>
-            <td class="td-num">${num}</td>
+          rows += `<tr class="${statut === 'Fermé' ? 'row-closed' : ''}">
+            <td class="td-num">${numCell}</td>
             <td class="td-time">${time}</td>
             <td class="td-msg ${msg ? 'has-msg' : ''}">${msg || '<span style="opacity:.45;font-style:italic">En attente de réponse</span>'}</td>
             <td>
@@ -750,6 +785,7 @@
           </tr>`;
         });
 
+        const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         document.getElementById('tableContent').innerHTML = `
           <table>
             <thead><tr>
@@ -759,7 +795,8 @@
               <th>Statut</th>
             </tr></thead>
             <tbody>${rows}</tbody>
-          </table>`;
+          </table>
+          <div class="table-foot"><span class="live-dot"></span>Mis à jour à ${now}</div>`;
 
       } catch (e) {
         document.getElementById('tableContent').innerHTML =
@@ -768,17 +805,48 @@
       }
     }
 
-    // Event delegation — évite l'injection via onchange inline
+    // Event delegation — mise à jour statut avec feedback visuel
     document.getElementById('tableContent').addEventListener('change', async e => {
       const sel = e.target.closest('select[data-record-id]');
       if (!sel) return;
+
+      const recordId = sel.dataset.recordId;
+      const newStatut = sel.value;
+
+      sel.classList.add('is-saving');
+      sel.disabled = true;
+
       try {
         await fetch(API_URL, {
           method: 'PATCH',
           headers: await apiHeaders(),
-          body: JSON.stringify({ id: sel.dataset.recordId, statut: sel.value }),
+          body: JSON.stringify({ id: recordId, statut: newStatut }),
         });
-      } catch (e) { console.error(e); }
+
+        // Mise à jour en mémoire
+        const rec = allRecords.find(r => r.id === recordId);
+        if (rec) rec.fields['Statut'] = newStatut;
+
+        // Mise à jour visuelle de la ligne
+        const row = sel.closest('tr');
+        if (row) row.classList.toggle('row-closed', newStatut === 'Fermé');
+
+        // Mise à jour des stats KPI sans recharger
+        updateStats();
+
+        // Flash de confirmation
+        sel.classList.remove('is-saving');
+        sel.classList.add('is-saved');
+        setTimeout(() => sel.classList.remove('is-saved'), 1500);
+
+      } catch (err) {
+        console.error(err);
+        sel.classList.remove('is-saving');
+        sel.classList.add('is-error');
+        setTimeout(() => sel.classList.remove('is-error'), 2000);
+      } finally {
+        sel.disabled = false;
+      }
     });
 
     function esc(str) {
