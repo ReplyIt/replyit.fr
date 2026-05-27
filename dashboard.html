@@ -375,6 +375,28 @@
     .btn-expand { background: none; border: none; color: var(--accent); font-size: 0.8125rem; font-weight: 600; cursor: pointer; padding: 0; font-family: var(--font); }
     .btn-expand:hover { text-decoration: underline; }
 
+    /* ── Modal settings ── */
+    .modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(15,23,42,0.45); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+    .modal-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); width: 100%; max-width: 28rem; box-shadow: var(--shadow-md); overflow: hidden; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.125rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--bg-elevated); position: sticky; top: 0; }
+    .modal-header h2 { font-size: 1rem; font-weight: 700; }
+    .modal-close { font-size: 1.375rem; color: var(--text-muted); background: none; border: none; cursor: pointer; line-height: 1; padding: 0.125rem 0.25rem; }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { padding: 1.5rem; }
+    .modal-section { padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .modal-section:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
+    .modal-section-title { font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 1rem; }
+    .btn-save { padding: 0.625rem 1.25rem; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-family: var(--font); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background var(--transition); margin-top: 0.5rem; }
+    .btn-save:hover { background: var(--accent-hover); }
+    .btn-save:disabled { opacity: 0.55; cursor: not-allowed; }
+    .settings-msg { font-size: 0.8125rem; margin-top: 0.625rem; padding: 0.5rem 0.75rem; border-radius: 0.5rem; display: none; }
+    .settings-msg.ok  { display: block; background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+    .settings-msg.err { display: block; background: var(--danger-bg);  color: var(--danger);  border: 1px solid var(--danger-border); }
+
+    /* ── Bouton settings topnav ── */
+    .btn-settings { font-size: 0.8125rem; font-weight: 600; color: var(--text-muted); padding: 0.375rem 0.875rem; border: 1px solid var(--border); border-radius: 9999px; background: var(--bg-card); transition: border-color var(--transition), color var(--transition); }
+    .btn-settings:hover { border-color: var(--accent); color: var(--accent); }
+
     /* Call link */
     .td-num a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border-hover); }
     .td-num a:hover { color: var(--accent); border-bottom-color: var(--accent); }
@@ -514,6 +536,24 @@
       </div>
     </div>
 
+    <!-- NOUVEAU MOT DE PASSE (retour depuis email de reset) -->
+    <div id="state-new-password" class="auth-wrap" style="display:none">
+      <div class="auth-card">
+        <a href="/" class="auth-logo">Reply<span>It</span></a>
+        <p class="auth-sub">Choisissez votre nouveau mot de passe</p>
+        <div class="form-group">
+          <label for="newPwd">Nouveau mot de passe</label>
+          <input type="password" id="newPwd" placeholder="8 caractères minimum" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="newPwdConfirm">Confirmer le mot de passe</label>
+          <input type="password" id="newPwdConfirm" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <button class="btn-auth" id="newPwdBtn" onclick="handleNewPassword()">Enregistrer mon mot de passe →</button>
+        <div class="auth-error" id="newPwdError"></div>
+      </div>
+    </div>
+
     <!-- DASHBOARD -->
     <div id="app" style="display:none;flex-direction:column;min-height:100vh">
       <div id="success-banner" class="success-banner" style="display:none">
@@ -524,6 +564,7 @@
         <a href="/" class="nav-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
         <div class="nav-right">
           <span class="nav-user" id="navUser"></span>
+          <button class="btn-settings" onclick="openSettings()">Paramètres</button>
           <button class="btn-logout" onclick="handleLogout()">Déconnexion</button>
         </div>
       </nav>
@@ -569,6 +610,51 @@
       </main>
     </div>
 
+  <!-- MODAL PARAMÈTRES -->
+  <div id="settings-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeSettings()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Paramètres du compte</h2>
+        <button class="modal-close" onclick="closeSettings()" aria-label="Fermer">×</button>
+      </div>
+      <div class="modal-body">
+
+        <div class="modal-section">
+          <div class="modal-section-title">Informations</div>
+          <div class="form-group">
+            <label for="sFull">Prénom & Nom</label>
+            <input type="text" id="sFull" placeholder="Jules Bouchery" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label for="sCompany">Nom de l'entreprise</label>
+            <input type="text" id="sCompany" placeholder="Plomberie Dupont" autocomplete="organization">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="sEmail" disabled style="opacity:0.6;cursor:not-allowed">
+          </div>
+          <button class="btn-save" onclick="saveProfile()">Enregistrer les infos</button>
+          <div class="settings-msg" id="profileMsg"></div>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title">Changer le mot de passe</div>
+          <div class="form-group">
+            <label for="sPwd">Nouveau mot de passe</label>
+            <input type="password" id="sPwd" placeholder="8 caractères minimum" autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label for="sPwdConfirm">Confirmer</label>
+            <input type="password" id="sPwdConfirm" placeholder="••••••••" autocomplete="new-password">
+          </div>
+          <button class="btn-save" onclick="savePassword()">Changer le mot de passe</button>
+          <div class="settings-msg" id="passwordMsg"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   </div><!-- /page-content -->
 
   <script>
@@ -583,7 +669,7 @@
     let allRecords  = [];   // in-memory cache for live stat updates
 
     // ── State machine ─────────────────────────────────────────────────────────
-    const STATES = ['state-loading', 'state-login', 'state-forgot', 'state-pending', 'state-activating', 'app'];
+    const STATES = ['state-loading', 'state-login', 'state-forgot', 'state-pending', 'state-activating', 'state-new-password', 'app'];
     function showState(id) {
       STATES.forEach(s => {
         const el = document.getElementById(s);
@@ -591,11 +677,50 @@
       });
     }
 
+    // ── Auth events (password recovery) ──────────────────────────────────────
+    sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        currentUser = session?.user || null;
+        showState('state-new-password');
+        document.getElementById('newPwdBtn').disabled = false;
+        document.getElementById('newPwdBtn').textContent = 'Enregistrer mon mot de passe →';
+      }
+    });
+
     // ── Boot ──────────────────────────────────────────────────────────────────
     async function init() {
+      // Si retour depuis un email de reset, onAuthStateChange gère la suite
+      if (window.location.hash.includes('type=recovery')) return;
       const { data: { session } } = await sb.auth.getSession();
       if (!session) { showState('state-login'); return; }
       currentUser = session.user;
+      await checkAndRoute();
+    }
+
+    // ── Nouveau mot de passe ──────────────────────────────────────────────────
+    async function handleNewPassword() {
+      const pwd     = document.getElementById('newPwd').value;
+      const confirm = document.getElementById('newPwdConfirm').value;
+      const btn     = document.getElementById('newPwdBtn');
+      const err     = document.getElementById('newPwdError');
+      err.classList.remove('show');
+
+      if (pwd.length < 8) { err.textContent = 'Le mot de passe doit faire au moins 8 caractères.'; err.classList.add('show'); return; }
+      if (pwd !== confirm) { err.textContent = 'Les mots de passe ne correspondent pas.'; err.classList.add('show'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Enregistrement…';
+
+      const { error } = await sb.auth.updateUser({ password: pwd });
+      if (error) {
+        err.textContent = 'Une erreur est survenue, réessayez.';
+        err.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Enregistrer mon mot de passe →';
+        return;
+      }
+      // Mot de passe mis à jour → rediriger vers le dashboard
+      window.location.hash = '';
       await checkAndRoute();
     }
 
@@ -994,6 +1119,64 @@
       const d = new Date(iso);
       return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' })
            + ' · ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    }
+
+    // ── Settings ──────────────────────────────────────────────────────────────
+    function openSettings() {
+      const meta = currentUser?.user_metadata || {};
+      document.getElementById('sFull').value    = meta.full_name     || '';
+      document.getElementById('sCompany').value = meta.company_name  || '';
+      document.getElementById('sEmail').value   = currentUser?.email || '';
+      document.getElementById('sPwd').value        = '';
+      document.getElementById('sPwdConfirm').value = '';
+      document.getElementById('profileMsg').className  = 'settings-msg';
+      document.getElementById('passwordMsg').className = 'settings-msg';
+      document.getElementById('settings-modal').style.display = 'flex';
+    }
+
+    function closeSettings() {
+      document.getElementById('settings-modal').style.display = 'none';
+    }
+
+    async function saveProfile() {
+      const fullName   = document.getElementById('sFull').value.trim();
+      const company    = document.getElementById('sCompany').value.trim();
+      const msgEl      = document.getElementById('profileMsg');
+      const btn        = document.querySelector('#settings-modal .modal-section:first-child .btn-save');
+      msgEl.className  = 'settings-msg';
+
+      if (!fullName) { msgEl.textContent = 'Le nom est requis.'; msgEl.className = 'settings-msg err'; return; }
+
+      btn.disabled = true; btn.textContent = 'Enregistrement…';
+      const { error } = await sb.auth.updateUser({ data: { full_name: fullName, company_name: company } });
+      btn.disabled = false; btn.textContent = 'Enregistrer les infos';
+
+      if (error) { msgEl.textContent = 'Erreur, réessayez.'; msgEl.className = 'settings-msg err'; return; }
+
+      // Mettre à jour le currentUser en mémoire
+      if (currentUser) currentUser.user_metadata = { ...currentUser.user_metadata, full_name: fullName, company_name: company };
+      msgEl.textContent = '✓ Informations mises à jour'; msgEl.className = 'settings-msg ok';
+    }
+
+    async function savePassword() {
+      const pwd     = document.getElementById('sPwd').value;
+      const confirm = document.getElementById('sPwdConfirm').value;
+      const msgEl   = document.getElementById('passwordMsg');
+      const btn     = document.querySelector('#settings-modal .modal-section:last-child .btn-save');
+      msgEl.className = 'settings-msg';
+
+      if (pwd.length < 8) { msgEl.textContent = 'Minimum 8 caractères.'; msgEl.className = 'settings-msg err'; return; }
+      if (pwd !== confirm) { msgEl.textContent = 'Les mots de passe ne correspondent pas.'; msgEl.className = 'settings-msg err'; return; }
+
+      btn.disabled = true; btn.textContent = 'Enregistrement…';
+      const { error } = await sb.auth.updateUser({ password: pwd });
+      btn.disabled = false; btn.textContent = 'Changer le mot de passe';
+
+      if (error) { msgEl.textContent = 'Erreur, réessayez.'; msgEl.className = 'settings-msg err'; return; }
+
+      document.getElementById('sPwd').value = '';
+      document.getElementById('sPwdConfirm').value = '';
+      msgEl.textContent = '✓ Mot de passe mis à jour'; msgEl.className = 'settings-msg ok';
     }
 
     init();
