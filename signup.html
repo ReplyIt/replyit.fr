@@ -199,10 +199,14 @@
       showStep(3);
     }
 
-    // Fires when the user clicks the confirmation link in their email (SIGNED_IN
-    // is emitted after Supabase processes the token in the URL hash).
+    // Route whenever a real session appears:
+    // - SIGNED_IN       : email confirmed (implicit flow) or normal login
+    // - INITIAL_SESSION : session restored after PKCE code exchange on redirect
+    // - USER_UPDATED    : email change confirmed
+    // The `&& session` guard ensures we never call routeSession with null
+    // (which would leave the page in a blank state).
     sbClient.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') && session) {
         await routeSession(session);
       }
     });
