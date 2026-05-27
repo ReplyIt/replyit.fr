@@ -761,7 +761,7 @@
     function showDashboard(showBanner = false) {
       document.getElementById('navUser').textContent = currentUser.email;
 
-      const clientName = currentUser.user_metadata?.client_name;
+      const clientName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.client_name;
       const firstName  = clientName ? clientName.split(' ')[0] : null;
       const DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
       const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
