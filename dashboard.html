@@ -113,8 +113,8 @@
     }
     .auth-logo span { color: var(--accent); }
     .auth-logo:hover { color: var(--accent); }
-    .back-link { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.8125rem; font-weight: 500; color: var(--text-muted); text-decoration: none; margin-bottom: 1rem; transition: color 150ms; }
-    .back-link:hover { color: var(--accent); }
+    .back-link-fixed { position: fixed; top: calc(4px + 1rem); left: 1.5rem; display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.8125rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 150ms; z-index: 100; }
+    .back-link-fixed:hover { color: var(--accent); }
 
     .auth-sub {
       font-size: 0.875rem;
@@ -461,6 +461,11 @@
     <span class="tricolor-red"></span>
   </div>
 
+  <a href="/" id="global-back-link" class="back-link-fixed" style="display:none">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+    Retour à l'accueil
+  </a>
+
   <div class="page-content">
 
     <!-- LOADING -->
@@ -471,10 +476,6 @@
     <!-- LOGIN -->
     <div id="state-login" class="auth-wrap" style="display:none">
       <div class="auth-card">
-        <a href="/" class="back-link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-          Retour à l'accueil
-        </a>
         <a href="/" class="auth-logo" aria-label="Retour à l'accueil ReplyIt">Reply<span>It</span></a>
         <p class="auth-sub">Connectez-vous à votre espace client</p>
         <div class="form-group">
@@ -681,6 +682,8 @@
         const el = document.getElementById(s);
         if (el) el.style.display = (s === id) ? 'flex' : 'none';
       });
+      const backLink = document.getElementById('global-back-link');
+      if (backLink) backLink.style.display = (id === 'app') ? 'none' : 'inline-flex';
     }
 
     // ── Auth events (password recovery) ──────────────────────────────────────
