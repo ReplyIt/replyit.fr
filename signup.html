@@ -39,7 +39,10 @@
     .tricolor-white { background: #ffffff; }
     .tricolor-red { background: #ed2939; }
     .page-content { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: calc(var(--tricolor-h) + 2rem) 1.5rem 3rem; }
-    .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-bottom: 2rem; letter-spacing: -0.02em; }
+    .back-link-fixed { position: fixed; top: calc(4px + 1rem); left: 1.5rem; display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.8125rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 150ms; z-index: 100; }
+    .back-link-fixed:hover { color: var(--accent); }
+    .logo { font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 2rem; letter-spacing: -0.02em; text-decoration: none; }
+    .logo span { color: var(--accent); }
     h1 { font-size: 1.75rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
     .subtitle { color: var(--text-muted); text-align: center; margin-bottom: 2.5rem; font-size: 0.95rem; }
     .steps { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2.5rem; }
@@ -92,8 +95,13 @@
   </div>
   <div class="tricolor-bar"><span class="tricolor-blue"></span><span class="tricolor-white"></span><span class="tricolor-red"></span></div>
 
+  <a href="/" class="back-link-fixed">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+    Retour à l'accueil
+  </a>
+
   <div class="page-content">
-    <div class="logo">ReplyIt</div>
+    <a href="/" class="logo">Reply<span>It</span></a>
     <h1 id="main-title">Créer mon compte</h1>
     <p class="subtitle" id="main-subtitle">Ne ratez plus jamais un client</p>
 
@@ -111,7 +119,7 @@
     <div class="form-card" id="step1">
       <div class="field">
         <label>Prénom & Nom</label>
-        <input type="text" id="fullname" placeholder="Jules Bouchery" autocomplete="name">
+        <input type="text" id="fullname" placeholder="Jean Dupont" autocomplete="name">
       </div>
       <div class="field">
         <label>Nom de votre entreprise</label>
