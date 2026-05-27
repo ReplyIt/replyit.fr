@@ -176,70 +176,56 @@
     let currentUserId = null;
 
     // ── Routing ──────────────────────────────────────────────────────────────
-    // Step1 is shown by default in HTML — we only redirect away when there is
-    // an active session. Never rely on INITIAL_SESSION: it fires before we can
-    // guarantee a step is visible and can leave the page blank on a slow query.
+    // Step1 is shown by default. All routing is handled in a single IIFE.
+    // No onAuthStateChange — querying the DB inside an auth callback causes
+    // Supabase to hang the request due to an internal session lock.
 
-    async function routeSession(session) {
-      console.log('[routeSession]', session ? session.user.email : 'null');
-      if (!session) return; // no session → step1 stays visible
-      currentUserId = session.user.id;
-      try {
-        const { data: profile, error: profileErr } = await sbClient
-          .from('profiles')
-          .select('status')
-          .eq('id', currentUserId)
-          .single();
-        console.log('[profile]', profile?.status, profileErr?.message);
-        if (profile?.status === 'active') {
-          console.log('[→ dashboard]');
-          window.location.href = '/dashboard';
-          return;
-        }
-      } catch (e) {
-        console.error('[routeSession catch]', e);
-      }
-      console.log('[→ showStep 3]');
-      showStep(3);
-    }
-
-    // Route whenever a real session appears:
-    // - SIGNED_IN       : email confirmed (implicit flow) or normal login
-    // - INITIAL_SESSION : session restored after PKCE code exchange on redirect
-    // - USER_UPDATED    : email change confirmed
-    // The `&& session` guard ensures we never call routeSession with null
-    // (which would leave the page in a blank state).
-    sbClient.auth.onAuthStateChange(async (event, session) => {
-      console.log('[Auth]', event, session ? '✅ session' : '❌ no session');
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') && session) {
-        await routeSession(session);
-      }
-    });
-
-    // Check on initial load: handles returning users, post-Stripe cancel,
-    // AND email confirmation redirects (implicit flow — #access_token=… in URL).
     (async () => {
-      // Supabase doesn't always auto-detect the hash token — handle it explicitly.
       const hash = window.location.hash.slice(1);
+
+      // Case 1 — Email confirmation (implicit flow: #access_token=…&type=signup)
       if (hash.includes('access_token')) {
-        const p = new URLSearchParams(hash);
-        const accessToken = p.get('access_token');
-        const refreshToken = p.get('refresh_token');
-        if (accessToken && refreshToken) {
+        const p  = new URLSearchParams(hash);
+        const at = p.get('access_token');
+        const rt = p.get('refresh_token');
+        const tp = p.get('type');
+
+        if (at && rt) {
           const { data: { session } } = await sbClient.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
+            access_token: at, refresh_token: rt,
           });
-          if (session) {
-            window.history.replaceState({}, '', window.location.pathname);
-            await routeSession(session);
+          window.history.replaceState({}, '', window.location.pathname);
+
+          if (tp === 'signup') {
+            // Brand-new user confirmed email — can't be active yet, skip DB query.
+            if (session) currentUserId = session.user.id;
+            showStep(3);
             return;
           }
+          // Other token types (e.g. recovery) — check profile normally.
+          if (session) {
+            currentUserId = session.user.id;
+            try {
+              const { data: p } = await sbClient.from('profiles')
+                .select('status').eq('id', currentUserId).single();
+              if (p?.status === 'active') { window.location.href = '/dashboard'; return; }
+            } catch (_) {}
+            showStep(3);
+          }
+          return;
         }
       }
-      // Normal load — check existing session.
+
+      // Case 2 — Normal load: returning user or post-Stripe cancel
       const { data: { session } } = await sbClient.auth.getSession();
-      await routeSession(session);
+      if (!session) return; // step1 stays visible
+      currentUserId = session.user.id;
+      try {
+        const { data: prof } = await sbClient.from('profiles')
+          .select('status').eq('id', currentUserId).single();
+        if (prof?.status === 'active') { window.location.href = '/dashboard'; return; }
+      } catch (_) {}
+      showStep(3);
     })();
 
     function setStep(num) {
