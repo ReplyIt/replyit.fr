@@ -213,9 +213,28 @@
       }
     });
 
-    // Check on initial load: handles returning users & post-Stripe cancel.
-    // getSession() reads from localStorage — fast and never hides step1 on failure.
+    // Check on initial load: handles returning users, post-Stripe cancel,
+    // AND email confirmation redirects (implicit flow — #access_token=… in URL).
     (async () => {
+      // Supabase doesn't always auto-detect the hash token — handle it explicitly.
+      const hash = window.location.hash.slice(1);
+      if (hash.includes('access_token')) {
+        const p = new URLSearchParams(hash);
+        const accessToken = p.get('access_token');
+        const refreshToken = p.get('refresh_token');
+        if (accessToken && refreshToken) {
+          const { data: { session } } = await sbClient.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (session) {
+            window.history.replaceState({}, '', window.location.pathname);
+            await routeSession(session);
+            return;
+          }
+        }
+      }
+      // Normal load — check existing session.
       const { data: { session } } = await sbClient.auth.getSession();
       await routeSession(session);
     })();
