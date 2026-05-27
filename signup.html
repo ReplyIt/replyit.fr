@@ -108,7 +108,7 @@
     </div>
 
     <!-- Step 1 : infos -->
-    <div class="form-card" id="step1">
+    <div class="form-card" id="step1" style="display:none">
       <div class="field">
         <label>Prénom & Nom</label>
         <input type="text" id="fullname" placeholder="Jules Bouchery" autocomplete="name">
@@ -175,23 +175,29 @@
     let userData = {};
     let currentUserId = null;
 
-    // Vérifier si l'user revient après confirmation email
-    sbClient.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        currentUserId = session.user.id;
-        // Si déjà abonné actif, aller directement au dashboard
-        const { data: profile } = await sbClient
-          .from('profiles')
-          .select('status')
-          .eq('id', currentUserId)
-          .single();
-        if (profile?.status === 'active') {
-          window.location.href = '/dashboard';
-          return;
-        }
-        showStep(3);
+    // Routage selon l'état de session (appelé au chargement + sur changement auth)
+    async function routeFromSession(session) {
+      if (!session) { showStep(1); return; }
+      currentUserId = session.user.id;
+      const { data: profile } = await sbClient
+        .from('profiles')
+        .select('status')
+        .eq('id', currentUserId)
+        .single();
+      if (profile?.status === 'active') {
+        window.location.href = '/dashboard';
+        return;
       }
+      showStep(3);
+    }
+
+    // Écouter les changements d'auth (confirmation email dans un autre onglet, etc.)
+    sbClient.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') await routeFromSession(session);
     });
+
+    // Vérification initiale au chargement (retour Stripe, page rafraîchie, etc.)
+    sbClient.auth.getSession().then(({ data: { session } }) => routeFromSession(session));
 
     function setStep(num) {
       for (let i = 1; i <= 4; i++) {
