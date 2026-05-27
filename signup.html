@@ -181,6 +181,7 @@
     // guarantee a step is visible and can leave the page blank on a slow query.
 
     async function routeSession(session) {
+      console.log('[routeSession]', session ? session.user.email : 'null');
       if (!session) return; // no session → step1 stays visible
       currentUserId = session.user.id;
       try {
@@ -206,6 +207,7 @@
     // The `&& session` guard ensures we never call routeSession with null
     // (which would leave the page in a blank state).
     sbClient.auth.onAuthStateChange(async (event, session) => {
+      console.log('[Auth]', event, session ? '✅ session' : '❌ no session');
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') && session) {
         await routeSession(session);
       }
