@@ -524,8 +524,8 @@
             <div class="stat-value" id="statNew">—</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Rappelés</div>
-            <div class="stat-value" id="statCalled">—</div>
+            <div class="stat-label">Convertis</div>
+            <div class="stat-value green" id="statCalled">—</div>
           </div>
         </div>
 
@@ -729,8 +729,8 @@
     function updateStats() {
       document.getElementById('statTotal').textContent   = allRecords.length;
       document.getElementById('statReplies').textContent = allRecords.filter(r => r.fields['Message prospect']?.trim()).length;
-      document.getElementById('statNew').textContent     = allRecords.filter(r => !r.fields['Statut'] || r.fields['Statut'] === 'Nouveau').length;
-      document.getElementById('statCalled').textContent  = allRecords.filter(r => r.fields['Statut'] === 'Rappelé').length;
+      document.getElementById('statNew').textContent     = allRecords.filter(r => !r.fields['Statut'] || r.fields['Statut'] === 'À rappeler').length;
+      document.getElementById('statCalled').textContent  = allRecords.filter(r => r.fields['Statut'] === 'Converti').length;
     }
 
     async function loadData() {
@@ -770,16 +770,21 @@
             : '—';
           const time   = esc(f["Heure d'appel"] ? fmtDate(f["Heure d'appel"]) : '—');
           const msg    = esc(f['Message prospect'] || '');
-          const statut = f['Statut'] || 'Nouveau';
-          rows += `<tr class="${statut === 'Fermé' ? 'row-closed' : ''}">
+          // Migration douce : anciennes valeurs Airtable → nouvelles
+          const rawStatut = f['Statut'];
+          const statut = rawStatut === 'Nouveau' ? 'À rappeler'
+                       : rawStatut === 'Fermé'   ? 'Sans suite'
+                       : rawStatut              || 'À rappeler';
+          rows += `<tr class="${statut === 'Sans suite' ? 'row-closed' : ''}">
             <td class="td-num">${numCell}</td>
             <td class="td-time">${time}</td>
             <td class="td-msg ${msg ? 'has-msg' : ''}">${msg || '<span style="opacity:.45;font-style:italic">En attente de réponse</span>'}</td>
             <td>
               <select class="status-sel" data-record-id="${esc(r.id)}">
-                <option value="Nouveau" ${statut==='Nouveau'?'selected':''}>🔴 Nouveau</option>
-                <option value="Rappelé" ${statut==='Rappelé'?'selected':''}>🟢 Rappelé</option>
-                <option value="Fermé"   ${statut==='Fermé'  ?'selected':''}>⚫ Fermé</option>
+                <option value="À rappeler" ${statut==='À rappeler'?'selected':''}>🔴 À rappeler</option>
+                <option value="Rappelé"    ${statut==='Rappelé'   ?'selected':''}>🟡 Rappelé</option>
+                <option value="Converti"   ${statut==='Converti'  ?'selected':''}>🟢 Converti</option>
+                <option value="Sans suite" ${statut==='Sans suite'?'selected':''}>⚫ Sans suite</option>
               </select>
             </td>
           </tr>`;
@@ -817,11 +822,16 @@
       sel.disabled = true;
 
       try {
-        await fetch(API_URL, {
+        const res = await fetch(API_URL, {
           method: 'PATCH',
           headers: await apiHeaders(),
           body: JSON.stringify({ id: recordId, statut: newStatut }),
         });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error || `HTTP ${res.status}`);
+        }
 
         // Mise à jour en mémoire
         const rec = allRecords.find(r => r.id === recordId);
@@ -829,7 +839,7 @@
 
         // Mise à jour visuelle de la ligne
         const row = sel.closest('tr');
-        if (row) row.classList.toggle('row-closed', newStatut === 'Fermé');
+        if (row) row.classList.toggle('row-closed', newStatut === 'Sans suite');
 
         // Mise à jour des stats KPI sans recharger
         updateStats();
@@ -840,7 +850,10 @@
         setTimeout(() => sel.classList.remove('is-saved'), 1500);
 
       } catch (err) {
-        console.error(err);
+        console.error('PATCH statut échoué :', err);
+        // Revert le select à l'ancienne valeur
+        const rec = allRecords.find(r => r.id === recordId);
+        if (rec) sel.value = rec.fields['Statut'] || 'À rappeler';
         sel.classList.remove('is-saving');
         sel.classList.add('is-error');
         setTimeout(() => sel.classList.remove('is-error'), 2000);
