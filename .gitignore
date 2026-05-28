@@ -3,3 +3,5 @@
 .env.local
 config.local.js
 supabase/.temp/
+/secrets/
+node_modules/
