@@ -67,9 +67,10 @@ function buildSmsContent(profile: ClientProfile, phone: string): string {
   const tallyUrl = `${TALLY_FORM_URL}?phone=${encodeURIComponent(phone)}`;
   const brand = profile.businessName?.trim().slice(0, 30) || 'Nous';
 
-  // Template custom du client (texte littéral, pas de substitution complexe)
+  // Template custom du client (avec placeholder {business_name} substitué dynamiquement)
   if (profile.smsTemplate && profile.smsTemplate.trim().length > 0) {
-    return `${profile.smsTemplate.trim()} ${tallyUrl}`;
+    const body = profile.smsTemplate.trim().replace(/\{business_name\}/g, brand);
+    return `${body} ${tallyUrl}`;
   }
 
   // Template par défaut

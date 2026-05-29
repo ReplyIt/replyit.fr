@@ -416,6 +416,9 @@
     .modal-section .btn-save { margin-top: 0.25rem; }
     .modal-section--accent { background: var(--accent-subtle); border-color: var(--accent-glow); }
     .modal-section--accent .modal-section-title { color: var(--accent); }
+
+    .btn-insert-token { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 600; color: var(--accent); background: var(--accent-subtle); border: 1px dashed var(--accent-glow); border-radius: 9999px; cursor: pointer; transition: var(--transition); }
+    .btn-insert-token:hover { background: var(--accent-light); border-style: solid; }
     @media (min-width: 720px) {
       .modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     }
@@ -719,17 +722,22 @@
 
           <div class="form-group">
             <label for="sTemplate">Texte du SMS</label>
+            <div style="margin-bottom:0.4rem;">
+              <button type="button" class="btn-insert-token" onclick="insertBusinessToken()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nom de mon entreprise
+              </button>
+            </div>
             <textarea id="sTemplate" rows="3" placeholder="Tapez le texte de votre SMS…" style="width:100%;padding:0.625rem 0.875rem;font-family:inherit;font-size:0.875rem;line-height:1.5;border:1px solid var(--border);border-radius:0.5rem;resize:vertical;outline:none;background:var(--bg-card);color:var(--text);"></textarea>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.375rem;font-size:0.75rem;">
               <span style="color:var(--text-muted);">Le lien vers le formulaire est ajouté automatiquement à la fin.</span>
               <span id="sms-counter" style="font-weight:600;color:var(--text-muted);"><span id="sms-count-val">0</span> / <span id="sms-limit-val">160</span></span>
             </div>
             <div id="sms-unicode-warn" style="display:none;margin-top:0.5rem;padding:0.5rem 0.75rem;background:#fffbeb;border:1px solid #fde68a;border-radius:0.4rem;font-size:0.75rem;color:#92400e;">
-              ⚠️ Votre texte contient des caractères spéciaux (ô, â, ê, î, û) qui réduisent la limite à 70 caractères. Remplacez par o, a, e, i, u si possible pour rester à 160 caractères.
+              ⚠️ Votre texte contient des caractères spéciaux (ô, â, ê, î, û) qui réduisent la limite à 70 caractères.
             </div>
             <div style="margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted);line-height:1.5;">
-              💡 <strong>Astuce :</strong> gardez une mention vers le formulaire (ex: "Précisez votre demande :") pour guider votre prospect.<br>
-              ℹ️ Si vous changez le nom de votre entreprise, mettez à jour ce texte aussi.
+              💡 <strong>Astuce :</strong> gardez une mention vers le formulaire (ex: "Précisez votre demande :") pour guider votre prospect.
             </div>
           </div>
 
@@ -1389,10 +1397,23 @@
       return /[ôâêîûÔÂÊÎÛœŒ]/.test(text);
     }
 
+    function insertBusinessToken() {
+      const ta = document.getElementById('sTemplate');
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const token = '{business_name}';
+      ta.value = ta.value.slice(0, start) + token + ta.value.slice(end);
+      ta.focus();
+      ta.setSelectionRange(start + token.length, start + token.length);
+      buildSmsPreview();
+    }
+
     function buildSmsPreview() {
       const brand = (document.getElementById('sBusiness').value.trim() || 'Nous').slice(0, 30);
       const raw = document.getElementById('sTemplate').value.trim();
-      const body = raw || DEFAULT_SMS_TEMPLATE(brand);
+      const bodyTemplate = raw || DEFAULT_SMS_TEMPLATE(brand);
+      // Substituer {business_name} pour le preview et le compteur
+      const body = bodyTemplate.replace(/\{business_name\}/g, brand);
       const full = `${body} ${TALLY_URL_TEMPLATE}`;
       document.getElementById('sms-preview').textContent = full;
 
@@ -1441,10 +1462,10 @@
           .single();
         if (profile) {
           document.getElementById('sBusiness').value = profile.business_name || '';
-          // Si pas de template sauvegardé, pré-remplir avec le texte par défaut
-          // (contenant le vrai nom d'entreprise, pas un placeholder)
-          const brand = (profile.business_name?.trim() || 'Nous').slice(0, 30);
-          document.getElementById('sTemplate').value = profile.sms_template || DEFAULT_SMS_TEMPLATE(brand);
+          // Si pas de template sauvegardé, pré-remplir avec le template par défaut
+          // contenant le placeholder {business_name} (la substitution se fait dans la preview)
+          document.getElementById('sTemplate').value = profile.sms_template
+            || '{business_name} a bien reçu votre appel, on vous rappelle. Précisez votre demande :';
           document.getElementById('sTelnyx').value   = profile.telnyx_number || 'Non encore attribué — contactez-nous';
         }
       } catch (e) {
@@ -1494,7 +1515,8 @@
 
       // Vérif anti-overflow (1 segment SMS = 160 chars en GSM-7, 70 en Unicode)
       const brand = (business || 'Nous').slice(0, 30);
-      const body = template || `${brand} a bien reçu votre appel, on vous rappelle. Précisez votre demande :`;
+      const bodyTemplate = template || `${brand} a bien reçu votre appel, on vous rappelle. Précisez votre demande :`;
+      const body = bodyTemplate.replace(/\{business_name\}/g, brand);
       const full = `${body} ${TALLY_URL_TEMPLATE}`;
       const limit = hasNonGsmChars(full) ? 70 : 160;
       if (full.length > limit) {
