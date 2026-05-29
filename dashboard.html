@@ -718,11 +718,18 @@
           </div>
 
           <div class="form-group">
-            <label for="sTemplate">Texte du SMS <span style="color:var(--text-muted);font-weight:400;">(laisser vide pour le texte par défaut)</span></label>
-            <textarea id="sTemplate" rows="3" placeholder="Texte de votre SMS — utilisez {business_name} pour insérer votre nom" style="width:100%;padding:0.625rem 0.875rem;font-family:inherit;font-size:0.875rem;line-height:1.5;border:1px solid var(--border);border-radius:0.5rem;resize:vertical;outline:none;background:var(--bg-card);color:var(--text);"></textarea>
+            <label for="sTemplate">Texte du SMS</label>
+            <textarea id="sTemplate" rows="3" placeholder="Tapez le texte de votre SMS…" style="width:100%;padding:0.625rem 0.875rem;font-family:inherit;font-size:0.875rem;line-height:1.5;border:1px solid var(--border);border-radius:0.5rem;resize:vertical;outline:none;background:var(--bg-card);color:var(--text);"></textarea>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.375rem;font-size:0.75rem;">
-              <span style="color:var(--text-muted);">Le lien vers le formulaire est ajouté automatiquement.</span>
-              <span id="sms-counter" style="font-weight:600;color:var(--text-muted);"><span id="sms-count-val">0</span> / 160</span>
+              <span style="color:var(--text-muted);">Le lien vers le formulaire est ajouté automatiquement à la fin.</span>
+              <span id="sms-counter" style="font-weight:600;color:var(--text-muted);"><span id="sms-count-val">0</span> / <span id="sms-limit-val">160</span></span>
+            </div>
+            <div id="sms-unicode-warn" style="display:none;margin-top:0.5rem;padding:0.5rem 0.75rem;background:#fffbeb;border:1px solid #fde68a;border-radius:0.4rem;font-size:0.75rem;color:#92400e;">
+              ⚠️ Votre texte contient des caractères spéciaux (ô, â, ê, î, û) qui réduisent la limite à 70 caractères. Remplacez par o, a, e, i, u si possible pour rester à 160 caractères.
+            </div>
+            <div style="margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted);line-height:1.5;">
+              💡 <strong>Astuce :</strong> gardez une mention vers le formulaire (ex: "Précisez votre demande :") pour guider votre prospect.<br>
+              ℹ️ Si vous changez le nom de votre entreprise, mettez à jour ce texte aussi.
             </div>
           </div>
 
@@ -1375,24 +1382,41 @@
     const DEFAULT_SMS_TEMPLATE = (brand) =>
       `${brand} a bien reçu votre appel, on vous rappelle. Précisez votre demande :`;
 
+    // Détecte les caractères hors GSM-7 standard qui forcent l'encodage Unicode
+    // (réduit la limite SMS de 160 à 70 caractères par segment)
+    function hasNonGsmChars(text) {
+      // Caractères français non supportés par GSM-7 basic : ô, â, ê, î, û et leurs majuscules
+      return /[ôâêîûÔÂÊÎÛœŒ]/.test(text);
+    }
+
     function buildSmsPreview() {
       const brand = (document.getElementById('sBusiness').value.trim() || 'Nous').slice(0, 30);
       const raw = document.getElementById('sTemplate').value.trim();
-      const body = raw
-        ? raw.replace(/\{business_name\}/g, brand)
-        : DEFAULT_SMS_TEMPLATE(brand);
+      const body = raw || DEFAULT_SMS_TEMPLATE(brand);
       const full = `${body} ${TALLY_URL_TEMPLATE}`;
       document.getElementById('sms-preview').textContent = full;
+
       const len = full.length;
+      const isUnicode = hasNonGsmChars(full);
+      const limit = isUnicode ? 70 : 160;
       const counter = document.getElementById('sms-counter');
       const countEl = document.getElementById('sms-count-val');
+      const limitEl = document.getElementById('sms-limit-val');
       countEl.textContent = len;
-      if (len > 160) {
+      if (limitEl) limitEl.textContent = limit;
+
+      if (len > limit) {
         counter.style.color = 'var(--danger)';
-      } else if (len > 140) {
-        counter.style.color = '#b45309'; // amber warning
+      } else if (len > limit * 0.88) {
+        counter.style.color = '#b45309';
       } else {
         counter.style.color = 'var(--text-muted)';
+      }
+
+      // Warning Unicode
+      const unicodeWarn = document.getElementById('sms-unicode-warn');
+      if (unicodeWarn) {
+        unicodeWarn.style.display = isUnicode ? 'block' : 'none';
       }
     }
 
@@ -1417,7 +1441,10 @@
           .single();
         if (profile) {
           document.getElementById('sBusiness').value = profile.business_name || '';
-          document.getElementById('sTemplate').value = profile.sms_template || '';
+          // Si pas de template sauvegardé, pré-remplir avec le texte par défaut
+          // (contenant le vrai nom d'entreprise, pas un placeholder)
+          const brand = (profile.business_name?.trim() || 'Nous').slice(0, 30);
+          document.getElementById('sTemplate').value = profile.sms_template || DEFAULT_SMS_TEMPLATE(brand);
           document.getElementById('sTelnyx').value   = profile.telnyx_number || 'Non encore attribué — contactez-nous';
         }
       } catch (e) {
@@ -1465,12 +1492,13 @@
       const btn      = document.querySelector('#settings-modal .modal-section:nth-child(2) .btn-save');
       msgEl.className = 'settings-msg';
 
-      // Vérif anti-overflow (1 segment SMS = 160 chars)
+      // Vérif anti-overflow (1 segment SMS = 160 chars en GSM-7, 70 en Unicode)
       const brand = (business || 'Nous').slice(0, 30);
-      const body = template ? template.replace(/\{business_name\}/g, brand) : `${brand} a bien reçu votre appel, on vous rappelle. Précisez votre demande :`;
-      const fullLen = `${body} ${TALLY_URL_TEMPLATE}`.length;
-      if (fullLen > 160) {
-        msgEl.textContent = `Trop long (${fullLen}/160). Raccourcissez votre texte ou votre nom d'entreprise.`;
+      const body = template || `${brand} a bien reçu votre appel, on vous rappelle. Précisez votre demande :`;
+      const full = `${body} ${TALLY_URL_TEMPLATE}`;
+      const limit = hasNonGsmChars(full) ? 70 : 160;
+      if (full.length > limit) {
+        msgEl.textContent = `Trop long (${full.length}/${limit} caractères). ${limit === 70 ? 'Évitez les ô â ê î û pour passer à 160 chars.' : 'Raccourcissez votre texte.'}`;
         msgEl.className = 'settings-msg err';
         return;
       }

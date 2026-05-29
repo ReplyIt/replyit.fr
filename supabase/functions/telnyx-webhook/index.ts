@@ -67,11 +67,9 @@ function buildSmsContent(profile: ClientProfile, phone: string): string {
   const tallyUrl = `${TALLY_FORM_URL}?phone=${encodeURIComponent(phone)}`;
   const brand = profile.businessName?.trim().slice(0, 30) || 'Nous';
 
-  // Template custom du client (avec placeholder {business_name} qu'on substitue)
+  // Template custom du client (texte littéral, pas de substitution complexe)
   if (profile.smsTemplate && profile.smsTemplate.trim().length > 0) {
-    const body = profile.smsTemplate.trim().replace(/\{business_name\}/g, brand);
-    // Le lien Tally est toujours ajouté à la fin (obligatoire pour le flow)
-    return `${body} ${tallyUrl}`;
+    return `${profile.smsTemplate.trim()} ${tallyUrl}`;
   }
 
   // Template par défaut
