@@ -71,6 +71,51 @@ Deno.serve(async (req) => {
       console.error('Supabase error:', error);
       return json({ error: error.message }, 500);
     }
+
+    // Notifier l'admin pour qu'il achète + assigne un N° Telnyx à ce client
+    // (fire-and-forget : on n'attend pas la réponse pour ne pas bloquer Stripe)
+    try {
+      const resendKey  = Deno.env.get('RESEND_API_KEY');
+      const adminEmail = Deno.env.get('ADMIN_EMAIL') ?? 'contact@replyit.fr';
+      if (resendKey) {
+        const sql = `UPDATE profiles SET telnyx_number = '+33XXX' WHERE email = '${email}';`;
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${resendKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'ReplyIt <noreply@mail.replyit.fr>',
+            to: [adminEmail],
+            subject: `🆕 Nouveau client payant : ${businessName || email}`,
+            html: `
+              <h2>Nouveau client à provisionner</h2>
+              <p>Un client vient de payer son abonnement Stripe. Action requise :</p>
+              <ol>
+                <li>Acheter un numéro Telnyx FR (Mission Control → Numbers)</li>
+                <li>L'assigner à l'app Voice "ReplyIt"</li>
+                <li>Exécuter le SQL ci-dessous dans Supabase</li>
+              </ol>
+              <h3>Infos client</h3>
+              <ul>
+                <li><strong>Email</strong> : ${email}</li>
+                <li><strong>Entreprise</strong> : ${businessName || '—'}</li>
+                <li><strong>Sender SMS</strong> : ${smsSender || '—'}</li>
+                <li><strong>Plan</strong> : ${session.metadata?.plan ?? 'starter'}</li>
+                <li><strong>User ID</strong> : ${userId}</li>
+              </ul>
+              <h3>SQL à exécuter (remplacer +33XXX)</h3>
+              <pre style="background:#f1f5f9;padding:12px;border-radius:6px;font-size:13px;">${sql}</pre>
+              <p style="color:#64748b;font-size:13px;">Le client voit "Numéro en cours d'attribution" sur son dashboard jusqu'à ce que tu fasses cette opération.</p>
+            `,
+          }),
+        });
+      }
+    } catch (err) {
+      console.error('Failed to send admin notification:', err);
+      // On n'échoue pas le webhook pour autant : le profile est créé, c'est l'essentiel
+    }
   }
 
   if (event.type === 'customer.subscription.deleted') {

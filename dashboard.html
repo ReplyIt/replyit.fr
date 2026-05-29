@@ -750,9 +750,10 @@
           <div class="settings-msg" id="smsMsg"></div>
         </div>
 
-        <div class="modal-section modal-section--accent">
+        <div class="modal-section modal-section--accent" id="telnyx-section">
           <div class="modal-section-title">Votre numéro ReplyIt</div>
-          <div class="form-group">
+          <!-- État "attribué" : affichage par défaut -->
+          <div id="telnyx-state-assigned" class="form-group" style="display:none">
             <label>Numéro à utiliser pour le renvoi conditionnel</label>
             <input type="text" id="sTelnyx" disabled style="opacity:1;cursor:not-allowed;font-family:monospace;font-size:1.05rem;font-weight:600;background:var(--bg-card);">
             <small style="font-size:0.78rem;color:var(--text-muted);display:block;margin-top:0.5rem;line-height:1.5;">
@@ -760,6 +761,19 @@
               <code style="display:inline-block;margin-top:0.25rem;padding:0.15rem 0.4rem;background:var(--bg-card);border:1px solid var(--border);border-radius:0.4rem;font-size:0.85rem;">**61*&lt;votre-numéro&gt;*15#</code>
               <br>puis bouton appel (3 sonneries avant transfert).
             </small>
+          </div>
+          <!-- État "en attente" -->
+          <div id="telnyx-state-pending" style="display:none">
+            <div style="display:flex;align-items:center;gap:0.6rem;font-weight:700;color:var(--accent);margin-bottom:0.6rem;">
+              <span style="width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.5s ease-in-out infinite;display:inline-block;"></span>
+              Numéro en cours d'attribution
+            </div>
+            <p style="font-size:0.875rem;color:var(--text);line-height:1.55;margin-bottom:0.5rem;">
+              Votre paiement est validé ✅. Nous vous attribuons un numéro ReplyIt dédié sous <strong>24h ouvrées</strong>.
+            </p>
+            <p style="font-size:0.8125rem;color:var(--text-muted);line-height:1.5;">
+              Vous recevrez un email à <strong id="telnyx-pending-email"></strong> dès que votre numéro est prêt, avec le code d'activation à composer sur votre téléphone.
+            </p>
           </div>
         </div>
 
@@ -1462,11 +1476,20 @@
           .single();
         if (profile) {
           document.getElementById('sBusiness').value = profile.business_name || '';
-          // Si pas de template sauvegardé, pré-remplir avec le template par défaut
-          // contenant le placeholder {business_name} (la substitution se fait dans la preview)
           document.getElementById('sTemplate').value = profile.sms_template
             || '{business_name} a bien reçu votre appel, on vous rappelle. Précisez votre demande :';
-          document.getElementById('sTelnyx').value   = profile.telnyx_number || 'Non encore attribué — contactez-nous';
+          // Switch les 2 états selon que le numéro est attribué ou pas
+          const stateAssigned = document.getElementById('telnyx-state-assigned');
+          const statePending  = document.getElementById('telnyx-state-pending');
+          if (profile.telnyx_number) {
+            document.getElementById('sTelnyx').value = profile.telnyx_number;
+            stateAssigned.style.display = 'block';
+            statePending.style.display  = 'none';
+          } else {
+            stateAssigned.style.display = 'none';
+            statePending.style.display  = 'block';
+            document.getElementById('telnyx-pending-email').textContent = currentUser?.email || '';
+          }
         }
       } catch (e) {
         console.error('Failed to load profile:', e);
