@@ -40,7 +40,19 @@ Deno.serve(async (req) => {
       Deno.env.get('SB_SERVICE_ROLE_KEY')!,
     );
 
-    // Mettre à jour le profil user avec le statut payé
+    // Récupère les infos d'onboarding du user (business_name, sms_sender) depuis auth metadata
+    let businessName: string | null = null;
+    let smsSender: string | null = null;
+    try {
+      const { data: userData } = await supabase.auth.admin.getUserById(userId);
+      const meta = userData?.user?.user_metadata ?? {};
+      businessName = meta.business_name || meta.company_name || null;
+      smsSender = meta.sms_sender || null;
+    } catch (err) {
+      console.error('Failed to fetch user metadata:', err);
+    }
+
+    // Mettre à jour le profil user avec le statut payé + perso SMS
     const { error } = await supabase
       .from('profiles')
       .upsert({
@@ -50,6 +62,8 @@ Deno.serve(async (req) => {
         stripe_subscription_id: session.subscription as string,
         plan: session.metadata?.plan ?? 'starter',
         status: 'active',
+        business_name: businessName,
+        sms_sender: smsSender,
         updated_at: new Date().toISOString(),
       });
 

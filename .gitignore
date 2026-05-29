@@ -5,3 +5,8 @@ config.local.js
 supabase/.temp/
 /secrets/
 node_modules/
+
+# Local-only AI memory (contient secrets + contexte privé)
+ai-memory/
+# Blueprints Make (contiennent clés API)
+*.blueprint*.json

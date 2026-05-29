@@ -123,7 +123,12 @@
       </div>
       <div class="field">
         <label>Nom de votre entreprise</label>
-        <input type="text" id="company" placeholder="Plomberie Dupont" autocomplete="organization">
+        <input type="text" id="company" placeholder="Plomberie Dupont" autocomplete="organization" oninput="suggestSmsSender()">
+      </div>
+      <div class="field">
+        <label>Expéditeur des SMS <span style="font-weight:400; color:var(--text-muted); font-size:0.78rem;">(visible par vos prospects, 3-11 caractères, lettres et chiffres uniquement)</span></label>
+        <input type="text" id="sms_sender" placeholder="PLOMBDUPONT" maxlength="11" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;">Vos prospects verront : <strong id="sender-preview">PLOMBDUPONT</strong></div>
       </div>
       <div class="field">
         <label>Email professionnel</label>
@@ -265,22 +270,40 @@
       document.getElementById(id).classList.remove('show');
     }
 
+    // Suggère un expéditeur SMS depuis le nom d'entreprise
+    function suggestSmsSender() {
+      const company = document.getElementById('company').value;
+      const senderInput = document.getElementById('sms_sender');
+      // Ne suggère que si le user n'a pas déjà tapé manuellement
+      if (!senderInput.dataset.touched) {
+        const suggested = company.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 11);
+        senderInput.value = suggested;
+        document.getElementById('sender-preview').textContent = suggested || 'PLOMBDUPONT';
+      }
+    }
+    document.getElementById('sms_sender').addEventListener('input', function() {
+      this.dataset.touched = '1';
+      document.getElementById('sender-preview').textContent = this.value || 'PLOMBDUPONT';
+    });
+
     async function registerUser() {
       hideError('error1');
       const fullname = document.getElementById('fullname').value.trim();
       const company = document.getElementById('company').value.trim();
+      const smsSender = document.getElementById('sms_sender').value.trim();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
-      if (!fullname || !company || !email || !password) return showError('error1', 'Tous les champs sont obligatoires.');
+      if (!fullname || !company || !smsSender || !email || !password) return showError('error1', 'Tous les champs sont obligatoires.');
       if (password.length < 8) return showError('error1', 'Le mot de passe doit faire au moins 8 caractères.');
       if (!email.includes('@')) return showError('error1', 'Email invalide.');
+      if (!/^[A-Z0-9]{3,11}$/.test(smsSender)) return showError('error1', "L'expéditeur SMS doit faire 3 à 11 caractères (lettres et chiffres uniquement).");
 
       const btn = document.querySelector('#step1 .btn');
       btn.disabled = true;
       btn.textContent = 'Création du compte…';
 
-      userData = { fullname, company, email, password };
+      userData = { fullname, company, smsSender, email, password };
 
       try {
         const { data, error } = await sbClient.auth.signUp({
@@ -288,7 +311,7 @@
           password,
           options: {
             emailRedirectTo: window.location.origin + '/signup',
-            data: { full_name: fullname, company_name: company }
+            data: { full_name: fullname, company_name: company, business_name: company, sms_sender: smsSender }
           }
         });
 

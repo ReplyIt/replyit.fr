@@ -648,6 +648,30 @@
         </div>
 
         <div class="modal-section">
+          <div class="modal-section-title">Personnalisation SMS</div>
+          <div class="form-group">
+            <label for="sBusiness">Nom affiché dans le SMS</label>
+            <input type="text" id="sBusiness" placeholder="Plomberie Dupont" maxlength="60">
+            <small style="font-size:0.78rem;color:var(--text-muted);display:block;margin-top:0.3rem;">
+              Apparaît au début du message : « <span id="business-preview">votre nom</span> a bien reçu votre appel… »
+            </small>
+          </div>
+          <button class="btn-save" onclick="saveSmsSettings()">Enregistrer le SMS</button>
+          <div class="settings-msg" id="smsMsg"></div>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title">Votre numéro ReplyIt</div>
+          <div class="form-group">
+            <label>Numéro à utiliser pour le renvoi conditionnel</label>
+            <input type="text" id="sTelnyx" disabled style="opacity:0.7;cursor:not-allowed;font-family:monospace;font-size:1rem;">
+            <small style="font-size:0.78rem;color:var(--text-muted);display:block;margin-top:0.3rem;">
+              Pour activer : tapez sur votre téléphone <code>**61*&lt;votre-numéro&gt;*15#</code> puis bouton appel (3 sonneries avant transfert).
+            </small>
+          </div>
+        </div>
+
+        <div class="modal-section">
           <div class="modal-section-title">Changer le mot de passe</div>
           <div class="form-group">
             <label for="sPwd">Nouveau mot de passe</label>
@@ -1135,7 +1159,7 @@
     }
 
     // ── Settings ──────────────────────────────────────────────────────────────
-    function openSettings() {
+    async function openSettings() {
       const meta = currentUser?.user_metadata || {};
       document.getElementById('sFull').value    = meta.full_name     || '';
       document.getElementById('sCompany').value = meta.company_name  || '';
@@ -1144,8 +1168,34 @@
       document.getElementById('sPwdConfirm').value = '';
       document.getElementById('profileMsg').className  = 'settings-msg';
       document.getElementById('passwordMsg').className = 'settings-msg';
+      document.getElementById('smsMsg').className      = 'settings-msg';
+      // Pré-fill business_name + telnyx_number depuis profiles
+      document.getElementById('sBusiness').value = '';
+      document.getElementById('sTelnyx').value   = 'Chargement…';
+      document.getElementById('business-preview').textContent = meta.company_name || 'votre nom';
       document.getElementById('settings-modal').style.display = 'flex';
+      try {
+        const { data: profile } = await sb.from('profiles')
+          .select('business_name, telnyx_number')
+          .eq('id', currentUser.id)
+          .single();
+        if (profile) {
+          document.getElementById('sBusiness').value = profile.business_name || '';
+          document.getElementById('sTelnyx').value   = profile.telnyx_number || 'Non encore attribué — contactez-nous';
+          document.getElementById('business-preview').textContent = profile.business_name || meta.company_name || 'votre nom';
+        }
+      } catch (e) {
+        console.error('Failed to load profile:', e);
+        document.getElementById('sTelnyx').value = 'Erreur de chargement';
+      }
     }
+
+    // Preview du nom dans le SMS en live
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.id === 'sBusiness') {
+        document.getElementById('business-preview').textContent = e.target.value.trim() || 'votre nom';
+      }
+    });
 
     function closeSettings() {
       document.getElementById('settings-modal').style.display = 'none';
@@ -1169,6 +1219,29 @@
       // Mettre à jour le currentUser en mémoire
       if (currentUser) currentUser.user_metadata = { ...currentUser.user_metadata, full_name: fullName, company_name: company };
       msgEl.textContent = '✓ Informations mises à jour'; msgEl.className = 'settings-msg ok';
+    }
+
+    async function saveSmsSettings() {
+      const business = document.getElementById('sBusiness').value.trim();
+      const msgEl    = document.getElementById('smsMsg');
+      const btn      = document.querySelector('#settings-modal .modal-section:nth-child(2) .btn-save');
+      msgEl.className = 'settings-msg';
+
+      btn.disabled = true; btn.textContent = 'Enregistrement…';
+      try {
+        const { data, error } = await sb.functions.invoke('update-profile', {
+          body: { business_name: business }
+        });
+        if (error) throw error;
+        msgEl.textContent = '✓ Personnalisation SMS mise à jour';
+        msgEl.className = 'settings-msg ok';
+      } catch (err) {
+        console.error(err);
+        msgEl.textContent = err.message || 'Erreur, réessayez.';
+        msgEl.className = 'settings-msg err';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Enregistrer le SMS';
+      }
     }
 
     async function savePassword() {
