@@ -710,12 +710,27 @@
         <div class="modal-section">
           <div class="modal-section-title">Personnalisation SMS</div>
           <div class="form-group">
-            <label for="sBusiness">Nom affiché dans le SMS</label>
-            <input type="text" id="sBusiness" placeholder="Plomberie Dupont" maxlength="60">
+            <label for="sBusiness">Nom de votre entreprise</label>
+            <input type="text" id="sBusiness" placeholder="Plomberie Dupont" maxlength="30">
             <small style="font-size:0.78rem;color:var(--text-muted);display:block;margin-top:0.3rem;">
-              Apparaît au début du message : « <span id="business-preview">votre nom</span> a bien reçu votre appel… »
+              Utilisé dans le texte du SMS (30 caractères max).
             </small>
           </div>
+
+          <div class="form-group">
+            <label for="sTemplate">Texte du SMS <span style="color:var(--text-muted);font-weight:400;">(laisser vide pour le texte par défaut)</span></label>
+            <textarea id="sTemplate" rows="3" placeholder="Texte de votre SMS — utilisez {business_name} pour insérer votre nom" style="width:100%;padding:0.625rem 0.875rem;font-family:inherit;font-size:0.875rem;line-height:1.5;border:1px solid var(--border);border-radius:0.5rem;resize:vertical;outline:none;background:var(--bg-card);color:var(--text);"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.375rem;font-size:0.75rem;">
+              <span style="color:var(--text-muted);">Le lien vers le formulaire est ajouté automatiquement.</span>
+              <span id="sms-counter" style="font-weight:600;color:var(--text-muted);"><span id="sms-count-val">0</span> / 160</span>
+            </div>
+          </div>
+
+          <div class="form-group" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:0.5rem;padding:0.875rem 1rem;">
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">Aperçu du SMS</div>
+            <div id="sms-preview" style="font-size:0.875rem;color:var(--text);line-height:1.5;font-family:system-ui;"></div>
+          </div>
+
           <button class="btn-save" onclick="saveSmsSettings()">Enregistrer le SMS</button>
           <div class="settings-msg" id="smsMsg"></div>
         </div>
@@ -1356,6 +1371,31 @@
     }
 
     // ── Settings ──────────────────────────────────────────────────────────────
+    const TALLY_URL_TEMPLATE = 'https://tally.so/r/VLDjpa?phone=%2B33000000000'; // estimation longueur
+    const DEFAULT_SMS_TEMPLATE = (brand) =>
+      `${brand} a bien reçu votre appel, on vous rappelle. Précisez votre demande :`;
+
+    function buildSmsPreview() {
+      const brand = (document.getElementById('sBusiness').value.trim() || 'Nous').slice(0, 30);
+      const raw = document.getElementById('sTemplate').value.trim();
+      const body = raw
+        ? raw.replace(/\{business_name\}/g, brand)
+        : DEFAULT_SMS_TEMPLATE(brand);
+      const full = `${body} ${TALLY_URL_TEMPLATE}`;
+      document.getElementById('sms-preview').textContent = full;
+      const len = full.length;
+      const counter = document.getElementById('sms-counter');
+      const countEl = document.getElementById('sms-count-val');
+      countEl.textContent = len;
+      if (len > 160) {
+        counter.style.color = 'var(--danger)';
+      } else if (len > 140) {
+        counter.style.color = '#b45309'; // amber warning
+      } else {
+        counter.style.color = 'var(--text-muted)';
+      }
+    }
+
     async function openSettings() {
       const meta = currentUser?.user_metadata || {};
       document.getElementById('sFull').value    = meta.full_name     || '';
@@ -1366,31 +1406,31 @@
       document.getElementById('profileMsg').className  = 'settings-msg';
       document.getElementById('passwordMsg').className = 'settings-msg';
       document.getElementById('smsMsg').className      = 'settings-msg';
-      // Pré-fill business_name + telnyx_number depuis profiles
       document.getElementById('sBusiness').value = '';
+      document.getElementById('sTemplate').value = '';
       document.getElementById('sTelnyx').value   = 'Chargement…';
-      document.getElementById('business-preview').textContent = meta.company_name || 'votre nom';
       document.getElementById('settings-modal').style.display = 'flex';
       try {
         const { data: profile } = await sb.from('profiles')
-          .select('business_name, telnyx_number')
+          .select('business_name, sms_template, telnyx_number')
           .eq('id', currentUser.id)
           .single();
         if (profile) {
           document.getElementById('sBusiness').value = profile.business_name || '';
+          document.getElementById('sTemplate').value = profile.sms_template || '';
           document.getElementById('sTelnyx').value   = profile.telnyx_number || 'Non encore attribué — contactez-nous';
-          document.getElementById('business-preview').textContent = profile.business_name || meta.company_name || 'votre nom';
         }
       } catch (e) {
         console.error('Failed to load profile:', e);
         document.getElementById('sTelnyx').value = 'Erreur de chargement';
       }
+      buildSmsPreview();
     }
 
-    // Preview du nom dans le SMS en live
+    // Live preview du SMS
     document.addEventListener('input', (e) => {
-      if (e.target && e.target.id === 'sBusiness') {
-        document.getElementById('business-preview').textContent = e.target.value.trim() || 'votre nom';
+      if (e.target && (e.target.id === 'sBusiness' || e.target.id === 'sTemplate')) {
+        buildSmsPreview();
       }
     });
 
@@ -1420,14 +1460,25 @@
 
     async function saveSmsSettings() {
       const business = document.getElementById('sBusiness').value.trim();
+      const template = document.getElementById('sTemplate').value.trim();
       const msgEl    = document.getElementById('smsMsg');
       const btn      = document.querySelector('#settings-modal .modal-section:nth-child(2) .btn-save');
       msgEl.className = 'settings-msg';
 
+      // Vérif anti-overflow (1 segment SMS = 160 chars)
+      const brand = (business || 'Nous').slice(0, 30);
+      const body = template ? template.replace(/\{business_name\}/g, brand) : `${brand} a bien reçu votre appel, on vous rappelle. Précisez votre demande :`;
+      const fullLen = `${body} ${TALLY_URL_TEMPLATE}`.length;
+      if (fullLen > 160) {
+        msgEl.textContent = `Trop long (${fullLen}/160). Raccourcissez votre texte ou votre nom d'entreprise.`;
+        msgEl.className = 'settings-msg err';
+        return;
+      }
+
       btn.disabled = true; btn.textContent = 'Enregistrement…';
       try {
         const { data, error } = await sb.functions.invoke('update-profile', {
-          body: { business_name: business }
+          body: { business_name: business, sms_template: template }
         });
         if (error) throw error;
         msgEl.textContent = '✓ Personnalisation SMS mise à jour';

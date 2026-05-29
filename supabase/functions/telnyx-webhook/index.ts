@@ -65,14 +65,17 @@ async function getClientProfile(telnyxNumber: string | undefined): Promise<Clien
 
 function buildSmsContent(profile: ClientProfile, phone: string): string {
   const tallyUrl = `${TALLY_FORM_URL}?phone=${encodeURIComponent(phone)}`;
-  // Si le client a un template custom, on l'utilise + on ajoute le lien Tally
+  const brand = profile.businessName?.trim().slice(0, 30) || 'Nous';
+
+  // Template custom du client (avec placeholder {business_name} qu'on substitue)
   if (profile.smsTemplate && profile.smsTemplate.trim().length > 0) {
-    return `${profile.smsTemplate.trim()} ${tallyUrl}`.slice(0, 160);
+    const body = profile.smsTemplate.trim().replace(/\{business_name\}/g, brand);
+    // Le lien Tally est toujours ajouté à la fin (obligatoire pour le flow)
+    return `${body} ${tallyUrl}`;
   }
-  // Template par défaut court (1 segment max).
-  // On tronque le nom à 30 chars pour rester sous 160 chars total.
-  const brand = profile.businessName?.trim().slice(0, 30);
-  const prefix = brand
+
+  // Template par défaut
+  const prefix = profile.businessName?.trim()
     ? `${brand} a bien reçu votre appel,`
     : `Nous avons bien reçu votre appel,`;
   return `${prefix} on vous rappelle. Précisez votre demande : ${tallyUrl}`;
