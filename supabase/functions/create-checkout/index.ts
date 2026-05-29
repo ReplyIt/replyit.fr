@@ -69,6 +69,7 @@ Deno.serve(async (req) => {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: successUrl,
       cancel_url: cancelUrl,
+      allow_promotion_codes: true,
       metadata: { userId: user.id, email: user.email!, plan },
       subscription_data: {
         metadata: { userId: user.id, email: user.email!, plan },
