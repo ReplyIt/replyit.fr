@@ -365,6 +365,26 @@
     .stat-top .stat-label { margin-bottom: 0; }
     .stat-icon { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: 0.5rem; background: var(--accent-subtle); color: var(--accent); }
     .stat-icon svg { width: 1.125rem; height: 1.125rem; }
+
+    /* —— Callout "Prochain à rappeler" —— */
+    .next-callout { background: var(--bg-card); border: 1px solid var(--accent); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: 1fr; gap: 1rem; box-shadow: 0 0 0 4px var(--accent-subtle); position: relative; overflow: hidden; }
+    @media (min-width: 768px) { .next-callout { grid-template-columns: 1fr auto; align-items: center; } }
+    .next-callout::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
+    .next-header { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.5rem; }
+    .next-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--accent-glow); } 50% { box-shadow: 0 0 0 8px transparent; } }
+    .next-phone { font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; margin-bottom: 0.25rem; }
+    .next-phone a { color: var(--text); }
+    .next-phone a:hover { color: var(--accent); }
+    .next-waiting { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.625rem; }
+    .next-msg { font-size: 0.9375rem; color: var(--text); background: var(--bg-elevated); border-left: 3px solid var(--accent); padding: 0.625rem 0.875rem; border-radius: 0 0.4rem 0.4rem 0; font-style: italic; }
+    .next-msg.empty { font-style: italic; color: var(--text-muted); background: var(--bg-elevated); border-left-color: var(--border); }
+    .next-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+    @media (min-width: 768px) { .next-actions { flex-direction: column; min-width: 13rem; } }
+    .btn-call { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.75rem 1.25rem; background: var(--accent); color: #fff; font-weight: 600; font-size: 0.9rem; border-radius: 9999px; transition: var(--transition); }
+    .btn-call:hover { background: var(--accent-hover); }
+    .btn-mark-called { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem 1.25rem; background: var(--bg-card); color: var(--text-muted); font-weight: 600; font-size: 0.85rem; border-radius: 9999px; border: 1px solid var(--border); transition: var(--transition); cursor: pointer; }
+    .btn-mark-called:hover { color: var(--text); border-color: var(--border-hover); }
     .stat-value { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; color: var(--text); line-height: 1; }
 
     /* ── Statut select coloré ── */
@@ -589,6 +609,9 @@
           <h1 class="page-title" id="pageTitle">Tableau de bord</h1>
           <p class="page-sub" id="pageSub">Vos appels manqués et réponses prospects</p>
         </div>
+
+        <!-- Callout "Prochain à rappeler" — rempli dynamiquement -->
+        <div id="next-callout-wrap" style="display:none"></div>
 
         <div class="stats-row">
           <div class="stat-card">
@@ -1057,6 +1080,77 @@
       return s || 'À rappeler';
     }
 
+    function renderNextCallout() {
+      const wrap = document.getElementById('next-callout-wrap');
+      // Filtrer les "À rappeler"
+      const toCall = allRecords.filter(r => getStatus(r) === 'À rappeler');
+      if (toCall.length === 0) {
+        wrap.style.display = 'none';
+        wrap.innerHTML = '';
+        return;
+      }
+      // Priorité : ceux avec un message Tally rempli > ceux sans, puis du plus ancien au plus récent
+      const sorted = [...toCall].sort((a, b) => {
+        const aMsg = (a.fields['Message prospect'] || '').trim().length > 0 ? 1 : 0;
+        const bMsg = (b.fields['Message prospect'] || '').trim().length > 0 ? 1 : 0;
+        if (aMsg !== bMsg) return bMsg - aMsg; // ceux avec message d'abord
+        return new Date(a.fields["Heure d'appel"] || 0) - new Date(b.fields["Heure d'appel"] || 0);
+      });
+      const next = sorted[0];
+      const f = next.fields;
+      const rawNum = f['Numéro client'] || f['Name'] || '';
+      const fmtNum = formatPhone(rawNum);
+      const numEsc = esc(rawNum);
+      const iso = f["Heure d'appel"];
+      const waiting = iso ? fmtRelative(iso) : '—';
+      const msg = (f['Message prospect'] || '').trim();
+      const recordId = esc(next.id);
+
+      wrap.innerHTML = `
+        <div class="next-callout">
+          <div>
+            <div class="next-header"><span class="next-pulse"></span> Prochain à rappeler</div>
+            <div class="next-phone"><a href="tel:${numEsc}">${esc(fmtNum)}</a></div>
+            <div class="next-waiting">En attente depuis ${esc(waiting)}</div>
+            ${msg
+              ? `<div class="next-msg">« ${esc(msg)} »</div>`
+              : `<div class="next-msg empty">Aucun message — le prospect n'a pas (encore) précisé sa demande</div>`}
+          </div>
+          <div class="next-actions">
+            <a href="tel:${numEsc}" class="btn-call">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              Appeler maintenant
+            </a>
+            <button class="btn-mark-called" onclick="markAsCalled('${recordId}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Marquer comme rappelé
+            </button>
+          </div>
+        </div>
+      `;
+      wrap.style.display = 'block';
+    }
+
+    async function markAsCalled(recordId) {
+      const rec = allRecords.find(r => r.id === recordId);
+      if (!rec) return;
+      try {
+        const res = await fetch(API_URL, {
+          method: 'PATCH',
+          headers: await apiHeaders(),
+          body: JSON.stringify({ id: recordId, statut: 'Rappelé' }),
+        });
+        if (!res.ok) throw new Error('PATCH failed');
+        rec.fields['Statut'] = 'Rappelé';
+        updateStats();
+        renderNextCallout();
+        renderTable();
+      } catch (e) {
+        console.error(e);
+        alert('Erreur, réessayez.');
+      }
+    }
+
     function renderTable() {
       const filtered = currentFilter === 'all'
         ? allRecords
@@ -1144,6 +1238,7 @@
         allRecords.sort((a, b) => new Date(b.fields["Heure d'appel"] || 0) - new Date(a.fields["Heure d'appel"] || 0));
 
         updateStats();
+        renderNextCallout();
 
         // Cache/affiche les filtres selon qu'on a des données ou pas
         document.getElementById('filterPills').style.display = allRecords.length === 0 ? 'none' : 'flex';
@@ -1227,6 +1322,7 @@
 
         // Mise à jour des stats KPI sans recharger
         updateStats();
+        renderNextCallout();
 
         // Flash de confirmation
         sel.classList.remove('is-saving');
