@@ -187,10 +187,9 @@
   <script>
     const SUPABASE_URL = 'https://yjaycdraeernpwqpbvco.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqYXljZHJhZWVybnB3cXBidmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NjIyNjcsImV4cCI6MjA5NTIzODI2N30.2sUDp_ERuiVaVtD0TvemuuADsKrJ8TXeBLXfhwPnP5I';
-    // ⚠️ Remplace ces price_id par les nouveaux Stripe price IDs (99€/mois et 950€/an)
     const PRICE_IDS = {
-      starter_monthly: 'price_1TbFhdBTZNxndIAE5PaJGJt9',  // TODO: créer le nouveau price 99€/mois dans Stripe
-      starter_yearly:  'price_REPLACE_WITH_YEARLY_PRICE_ID', // TODO: créer le price 950€/an dans Stripe
+      starter_monthly: 'price_1TcUQ7BTZNxndIAEGV00QTO1',  // 99€/mois (Stripe TEST)
+      starter_yearly:  'price_1TcUR2BTZNxndIAEgqKMiI7H',  // 950€/an  (Stripe TEST)
     };
 
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
