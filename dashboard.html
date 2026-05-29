@@ -803,6 +803,17 @@
         </div>
 
         <div class="modal-section">
+          <div class="modal-section-title">Abonnement</div>
+          <p style="font-size:0.875rem;color:var(--text-muted);line-height:1.55;margin-bottom:0.875rem;">
+            Gérez votre abonnement, mettez à jour votre carte, consultez vos factures, ou annulez quand vous voulez.
+          </p>
+          <button class="btn-save" style="background:var(--bg-card);color:var(--text);border:1px solid var(--border);" onclick="openCustomerPortal()" id="portalBtn">
+            Gérer mon abonnement →
+          </button>
+          <div class="settings-msg" id="portalMsg"></div>
+        </div>
+
+        <div class="modal-section">
           <div class="modal-section-title">Changer le mot de passe</div>
           <div class="form-group">
             <label for="sPwd">Nouveau mot de passe</label>
@@ -1609,6 +1620,28 @@
         msgEl.className = 'settings-msg err';
       } finally {
         btn.disabled = false; btn.textContent = 'Enregistrer le SMS';
+      }
+    }
+
+    async function openCustomerPortal() {
+      const btn   = document.getElementById('portalBtn');
+      const msgEl = document.getElementById('portalMsg');
+      msgEl.className = 'settings-msg';
+      btn.disabled = true;
+      btn.textContent = 'Redirection…';
+      try {
+        const { data, error } = await sb.functions.invoke('customer-portal', {
+          body: { returnUrl: window.location.origin + '/dashboard' }
+        });
+        if (error) throw error;
+        if (!data?.url) throw new Error("Réponse invalide");
+        window.location.href = data.url;
+      } catch (err) {
+        console.error(err);
+        msgEl.textContent = err.message || "Erreur lors de l'ouverture du portail";
+        msgEl.className = 'settings-msg err';
+        btn.disabled = false;
+        btn.textContent = 'Gérer mon abonnement →';
       }
     }
 
