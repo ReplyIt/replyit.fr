@@ -313,6 +313,14 @@
     .price-amount { display: flex; align-items: baseline; gap: 0.25rem; margin-bottom: 1.25rem; }
     .price-amount-val { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.04em; }
     .price-amount-unit { font-size: 0.95rem; color: var(--text-muted); }
+    .price-sub { font-size: 0.8125rem; color: var(--text-muted); margin-top: -0.5rem; margin-bottom: 1.25rem; }
+    .billing-toggle { display: inline-flex; gap: 0.25rem; padding: 0.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 9999px; margin: 0 auto 2rem; box-shadow: var(--shadow-sm); }
+    .billing-toggle-wrap { display: flex; justify-content: center; }
+    .billing-pill { padding: 0.55rem 1.1rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: transparent; border: none; border-radius: 9999px; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 0.4rem; }
+    .billing-pill:hover { color: var(--text); }
+    .billing-pill.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px var(--accent-glow); }
+    .billing-badge { font-size: 0.7rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 9999px; background: #15803d; color: #fff; }
+    .billing-pill.active .billing-badge { background: rgba(255,255,255,0.25); }
     .price-features { list-style: none; flex: 1; display: flex; flex-direction: column; gap: 0.625rem; margin-bottom: 1.5rem; }
     .price-features li { display: flex; gap: 0.625rem; font-size: 0.9375rem; color: var(--text); }
     .price-features svg { color: var(--success); flex-shrink: 0; }
@@ -745,14 +753,23 @@
         <p class="section-desc">Un client récupéré rembourse le forfait. Le reste, c'est tout bénef.</p>
       </header>
 
+      <!-- Toggle Mensuel / Annuel -->
+      <div class="billing-toggle-wrap">
+        <div class="billing-toggle">
+          <button type="button" class="billing-pill active" id="billing-monthly" onclick="setBilling('monthly')">Mensuel</button>
+          <button type="button" class="billing-pill" id="billing-yearly" onclick="setBilling('yearly')">Annuel <span class="billing-badge">-20%</span></button>
+        </div>
+      </div>
+
       <div class="pricing-grid pricing-single">
         <div class="price-card featured">
           <div class="price-badge">Starter</div>
           <div class="price-name">Idéal pour démarrer</div>
           <div class="price-amount">
-            <span class="price-amount-val">50€</span>
+            <span class="price-amount-val" id="price-val">99€</span>
             <span class="price-amount-unit">/ mois</span>
           </div>
+          <div class="price-sub" id="price-sub" style="display:none;">Facturé 950€/an (au lieu de 1 188€)</div>
           <ul class="price-features">
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> SMS automatiques illimités, sans surcoût</li>
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Dashboard temps réel</li>
@@ -760,7 +777,7 @@
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Personnalisation du SMS</li>
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Support email &lt; 24h</li>
           </ul>
-          <a href="/signup?plan=starter" class="btn btn-primary btn-lg price-cta">Choisir Starter →</a>
+          <a href="/signup?plan=starter" id="price-cta" class="btn btn-primary btn-lg price-cta">Choisir Starter →</a>
         </div>
 
         <!-- TODO: réactiver le plan Pro quand l'agent vocal IA sera prêt -->
@@ -948,6 +965,16 @@
     })();
 
     // FAQ toggle
+    // Toggle Mensuel / Annuel sur la pricing card
+    function setBilling(mode) {
+      const isYearly = mode === 'yearly';
+      document.getElementById('billing-monthly').classList.toggle('active', !isYearly);
+      document.getElementById('billing-yearly').classList.toggle('active', isYearly);
+      document.getElementById('price-val').textContent = isYearly ? '79€' : '99€';
+      document.getElementById('price-sub').style.display = isYearly ? 'block' : 'none';
+      document.getElementById('price-cta').href = isYearly ? '/signup?plan=starter&billing=yearly' : '/signup?plan=starter';
+    }
+
     function toggleFaq(btn) {
       const item = btn.closest('.faq-item');
       const expanded = item.getAttribute('aria-expanded') === 'true';

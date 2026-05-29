@@ -45,6 +45,9 @@
     label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.35rem; letter-spacing: 0.02em; text-transform: uppercase; }
     input { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--border); border-radius: 0.5rem; font-family: var(--font); font-size: 0.95rem; color: var(--text); background: var(--bg); transition: border-color 150ms; outline: none; }
     input:focus { border-color: var(--accent); }
+    .bill-pill { padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); background: transparent; border: none; border-radius: 9999px; cursor: pointer; transition: 150ms; display: inline-flex; align-items: center; }
+    .bill-pill:hover { color: var(--text); }
+    .bill-pill.active { background: var(--accent); color: #fff; }
     .pwd-wrap { position: relative; }
     .pwd-wrap input { padding-right: 2.5rem; }
     .pwd-toggle { position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.4rem; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; border-radius: 0.3rem; transition: color 150ms, background 150ms; }
@@ -150,10 +153,18 @@
 
     <!-- Step 3 : plan -->
     <div class="form-card" id="step3" style="display:none; max-width:26rem;">
+      <!-- Toggle Mensuel / Annuel -->
+      <div style="display:flex;justify-content:center;margin-bottom:1.25rem;">
+        <div style="display:inline-flex;gap:0.25rem;padding:0.25rem;background:var(--bg);border:1px solid var(--border);border-radius:9999px;">
+          <button type="button" id="billing-monthly" class="bill-pill active" onclick="setBilling('monthly')">Mensuel</button>
+          <button type="button" id="billing-yearly" class="bill-pill" onclick="setBilling('yearly')">Annuel <span style="display:inline-block;font-size:0.7rem;font-weight:700;padding:0.1rem 0.45rem;border-radius:9999px;background:#15803d;color:#fff;margin-left:0.3rem;">-20%</span></button>
+        </div>
+      </div>
       <div class="plans" style="grid-template-columns:1fr;">
         <div class="plan selected" id="plan-starter" onclick="selectPlan('starter')">
           <div class="plan-name">Starter</div>
-          <div class="plan-price">50€ <span>/ mois</span></div>
+          <div class="plan-price"><span id="plan-price-val">99€</span> <span>/ mois</span></div>
+          <div id="plan-price-sub" style="display:none;font-size:0.78rem;color:var(--text-muted);margin-top:-0.3rem;margin-bottom:0.5rem;">Facturé 950€/an (au lieu de 1 188€)</div>
           <div class="plan-features">
             ✓ SMS automatiques illimités<br>
             ✓ Dashboard temps réel<br>
@@ -176,13 +187,27 @@
   <script>
     const SUPABASE_URL = 'https://yjaycdraeernpwqpbvco.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqYXljZHJhZWVybnB3cXBidmNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NjIyNjcsImV4cCI6MjA5NTIzODI2N30.2sUDp_ERuiVaVtD0TvemuuADsKrJ8TXeBLXfhwPnP5I';
-    const PRICE_IDS = { starter: 'price_1TbFhdBTZNxndIAE5PaJGJt9', pro: 'price_1TbFiABTZNxndIAEEbZ3SaDc' };
+    // ⚠️ Remplace ces price_id par les nouveaux Stripe price IDs (99€/mois et 950€/an)
+    const PRICE_IDS = {
+      starter_monthly: 'price_1TbFhdBTZNxndIAE5PaJGJt9',  // TODO: créer le nouveau price 99€/mois dans Stripe
+      starter_yearly:  'price_REPLACE_WITH_YEARLY_PRICE_ID', // TODO: créer le price 950€/an dans Stripe
+    };
 
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let selectedPlan = 'starter';
+    let selectedBilling = 'monthly';
     let userData = {};
     let currentUserId = null;
+
+    function setBilling(mode) {
+      selectedBilling = mode;
+      const isYearly = mode === 'yearly';
+      document.getElementById('billing-monthly').classList.toggle('active', !isYearly);
+      document.getElementById('billing-yearly').classList.toggle('active', isYearly);
+      document.getElementById('plan-price-val').textContent = isYearly ? '79€' : '99€';
+      document.getElementById('plan-price-sub').style.display = isYearly ? 'block' : 'none';
+    }
 
     // ── Routing ──────────────────────────────────────────────────────────────
     // Step1 is shown by default. All routing is handled in a single IIFE.
@@ -365,7 +390,7 @@
 
         const { data, error } = await sbClient.functions.invoke('create-checkout', {
           body: {
-            priceId: PRICE_IDS[selectedPlan],
+            priceId: PRICE_IDS[`${selectedPlan}_${selectedBilling}`],
             email: sessionData.session.user.email,
             userId: currentUserId,
             plan: selectedPlan,
@@ -387,7 +412,9 @@
     // Pré-sélection du plan depuis l'URL (?plan=starter ou ?plan=pro)
     const params = new URLSearchParams(window.location.search);
     const planParam = params.get('plan');
-    if (planParam && PRICE_IDS[planParam]) selectPlan(planParam);
+    if (planParam === 'starter') selectPlan('starter');
+    const billingParam = params.get('billing');
+    if (billingParam === 'yearly') setBilling('yearly');
 
     if (params.get('payment') === 'cancelled') {
       document.getElementById('main-subtitle').textContent = 'Paiement annulé — vous pouvez réessayer.';
