@@ -146,7 +146,17 @@
       <p style="font-size:0.9rem; color:var(--text-muted);">Nous avons envoyé un lien de confirmation à</p>
       <p class="verify-email" id="confirm-email" style="margin-top:0.35rem;"></p>
       <p class="verify-hint">Cliquez sur le lien dans l'email pour activer votre compte.<br>Vérifiez aussi vos spams si vous ne le trouvez pas.</p>
-      <div style="margin-top:1.5rem; font-size:0.82rem; color:var(--text-muted);">
+
+      <div style="margin-top:1.5rem; padding:0.875rem 1rem; background:var(--bg); border:1px solid var(--border); border-radius:0.5rem;">
+        <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.625rem; line-height:1.5;">
+          Vous avez cliqué sur le lien depuis votre téléphone ?
+        </p>
+        <button class="btn" id="continue-btn" onclick="continueAfterConfirm()" style="padding:0.6rem 1.25rem; font-size:0.875rem; width:auto;">
+          J'ai confirmé, continuer ici →
+        </button>
+      </div>
+
+      <div style="margin-top:1rem; font-size:0.82rem; color:var(--text-muted);">
         Pas reçu ? <button class="resend-link" id="resend-btn" onclick="resendEmail()">Renvoyer l'email</button>
       </div>
     </div>
@@ -348,11 +358,70 @@
 
         document.getElementById('confirm-email').textContent = email;
         showStep(2);
+        startConfirmationPoll();
 
       } catch (err) {
         showError('error1', err.message || 'Une erreur est survenue.');
         btn.disabled = false;
         btn.textContent = 'Continuer →';
+      }
+    }
+
+    // Polling : détecte si le user a confirmé son email (ex: lien cliqué sur un autre appareil)
+    // → bascule auto sur step 3 dès que la confirmation est faite
+    let confirmPollInterval = null;
+    function startConfirmationPoll() {
+      stopConfirmationPoll();
+      confirmPollInterval = setInterval(async () => {
+        if (!userData.email || !userData.password) {
+          stopConfirmationPoll();
+          return;
+        }
+        try {
+          const { data, error } = await sbClient.auth.signInWithPassword({
+            email: userData.email,
+            password: userData.password
+          });
+          if (data?.session) {
+            stopConfirmationPoll();
+            currentUserId = data.user.id;
+            showStep(3);
+          }
+        } catch (_) {
+          // Email pas encore confirmé, on re-essaie au prochain tick
+        }
+      }, 4000);
+    }
+    function stopConfirmationPoll() {
+      if (confirmPollInterval) {
+        clearInterval(confirmPollInterval);
+        confirmPollInterval = null;
+      }
+    }
+    window.addEventListener('beforeunload', stopConfirmationPoll);
+
+    // Bouton fallback : "J'ai confirmé, continuer ici"
+    async function continueAfterConfirm() {
+      const btn = document.getElementById('continue-btn');
+      btn.disabled = true;
+      btn.textContent = 'Vérification…';
+      try {
+        const { data, error } = await sbClient.auth.signInWithPassword({
+          email: userData.email,
+          password: userData.password
+        });
+        if (error || !data?.session) {
+          btn.disabled = false;
+          btn.textContent = "J'ai confirmé, continuer ici →";
+          alert("Email pas encore confirmé. Cliquez sur le lien dans votre email.");
+          return;
+        }
+        stopConfirmationPoll();
+        currentUserId = data.user.id;
+        showStep(3);
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = "J'ai confirmé, continuer ici →";
       }
     }
 
