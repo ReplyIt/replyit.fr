@@ -426,19 +426,21 @@
 
     .btn-insert-token { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.65rem; font-size: 0.75rem; font-weight: 600; color: var(--accent); background: var(--accent-subtle); border: 1px dashed var(--accent-glow); border-radius: 9999px; cursor: pointer; transition: var(--transition); }
     .btn-insert-token:hover { background: var(--accent-light); border-style: solid; }
-    .modal-section-divider { margin: 1.25rem -1.25rem; border-top: 1px solid var(--border); }
     .modal-section-subtitle { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin: 0 0 0.75rem; }
 
-    .sms-layout { display: flex; flex-direction: column; gap: 1rem; }
+    .info-grid, .telnyx-abo-grid, .sms-layout { display: flex; flex-direction: column; gap: 1.25rem; }
 
     @media (min-width: 720px) {
-      .modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
-      .modal-section-info     { grid-column: 1; grid-row: 1 / span 2; }
-      .modal-section-telnyx   { grid-column: 2; grid-row: 1; }
-      .modal-section-abo      { grid-column: 2; grid-row: 2; }
-      .modal-section-sms-full { grid-column: 1 / -1; grid-row: 3; }
-      .sms-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+      .info-grid       { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem 2.5rem; }
+      .telnyx-abo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+      .sms-layout      { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     }
+
+    /* SMS preview - style "bulle de chat" pour distinguer de l'éditeur */
+    .sms-preview-bubble { background: linear-gradient(135deg, #1f2937, #374151); color: #fff; border-radius: 1rem 1rem 1rem 0.25rem; padding: 0.875rem 1rem; font-size: 0.875rem; line-height: 1.5; box-shadow: 0 4px 12px rgba(15,23,42,0.15); position: relative; }
+    .sms-preview-sender { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.6); margin-bottom: 0.4rem; }
+    .sms-preview-body { word-wrap: break-word; word-break: break-word; }
+    .sms-preview-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.5rem; }
     .modal-section-title { font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 1rem; }
     .btn-save { padding: 0.625rem 1.25rem; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-family: var(--font); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background var(--transition); margin-top: 0.5rem; }
     .btn-save:hover { background: var(--accent-hover); }
@@ -727,53 +729,61 @@
       </div>
       <div class="modal-body">
 
-        <!-- ═══ COLONNE GAUCHE — Informations (full height) ═══ -->
-        <div class="modal-section modal-section-info">
+        <!-- ═══ SECTION 1 : INFORMATIONS (large, 2 sous-colonnes desktop) ═══ -->
+        <div class="modal-section">
           <div class="modal-section-title">Informations</div>
-          <div class="form-group">
-            <label for="sFull">Prénom & Nom</label>
-            <input type="text" id="sFull" placeholder="Jules Bouchery" autocomplete="name">
-          </div>
-          <div class="form-group">
-            <label for="sCompany">Nom de l'entreprise</label>
-            <input type="text" id="sCompany" placeholder="Plomberie Dupont" autocomplete="organization">
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="sEmail" disabled style="opacity:0.6;cursor:not-allowed">
-          </div>
-          <button class="btn-save" id="profileSaveBtn" onclick="saveProfile()">Enregistrer les infos</button>
-          <div class="settings-msg" id="profileMsg"></div>
-
-          <hr class="modal-section-divider">
-
-          <div class="modal-section-subtitle">Changer le mot de passe</div>
-          <div class="form-group">
-            <label for="sPwd">Nouveau mot de passe</label>
-            <div class="pwd-wrap">
-              <input type="password" id="sPwd" placeholder="8 caractères minimum" autocomplete="new-password">
-              <button type="button" class="pwd-toggle" onclick="togglePwd(this)" aria-label="Afficher/masquer le mot de passe">
-                <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg class="eye-off" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              </button>
+          <div class="info-grid">
+            <!-- Colonne 1 : profil -->
+            <div>
+              <div class="modal-section-subtitle">Profil</div>
+              <div class="form-group">
+                <label for="sFull">Prénom & Nom</label>
+                <input type="text" id="sFull" placeholder="Jules Bouchery" autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label for="sCompany">Nom de l'entreprise</label>
+                <input type="text" id="sCompany" placeholder="Plomberie Dupont" autocomplete="organization">
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="sEmail" disabled style="opacity:0.6;cursor:not-allowed">
+              </div>
+              <button class="btn-save" id="profileSaveBtn" onclick="saveProfile()">Enregistrer les infos</button>
+              <div class="settings-msg" id="profileMsg"></div>
+            </div>
+            <!-- Colonne 2 : mot de passe -->
+            <div>
+              <div class="modal-section-subtitle">Mot de passe</div>
+              <div class="form-group">
+                <label for="sPwd">Nouveau mot de passe</label>
+                <div class="pwd-wrap">
+                  <input type="password" id="sPwd" placeholder="8 caractères minimum" autocomplete="new-password">
+                  <button type="button" class="pwd-toggle" onclick="togglePwd(this)" aria-label="Afficher/masquer le mot de passe">
+                    <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="eye-off" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="sPwdConfirm">Confirmer</label>
+                <div class="pwd-wrap">
+                  <input type="password" id="sPwdConfirm" placeholder="••••••••" autocomplete="new-password">
+                  <button type="button" class="pwd-toggle" onclick="togglePwd(this)" aria-label="Afficher/masquer le mot de passe">
+                    <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="eye-off" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  </button>
+                </div>
+              </div>
+              <button class="btn-save" id="passwordSaveBtn" onclick="savePassword()">Changer le mot de passe</button>
+              <div class="settings-msg" id="passwordMsg"></div>
             </div>
           </div>
-          <div class="form-group">
-            <label for="sPwdConfirm">Confirmer</label>
-            <div class="pwd-wrap">
-              <input type="password" id="sPwdConfirm" placeholder="••••••••" autocomplete="new-password">
-              <button type="button" class="pwd-toggle" onclick="togglePwd(this)" aria-label="Afficher/masquer le mot de passe">
-                <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg class="eye-off" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              </button>
-            </div>
-          </div>
-          <button class="btn-save" id="passwordSaveBtn" onclick="savePassword()">Changer le mot de passe</button>
-          <div class="settings-msg" id="passwordMsg"></div>
         </div>
 
-        <!-- ═══ COLONNE DROITE — N° ReplyIt + Abonnement ═══ -->
-        <div class="modal-section modal-section--accent modal-section-telnyx" id="telnyx-section">
+        <!-- ═══ SECTION 2 : N° ReplyIt + Abonnement (côte à côte desktop) ═══ -->
+        <div class="telnyx-abo-grid">
+
+        <div class="modal-section modal-section--accent" id="telnyx-section">
           <div class="modal-section-title">Votre numéro ReplyIt</div>
           <!-- État "attribué" -->
           <div id="telnyx-state-assigned" class="form-group" style="display:none">
@@ -805,7 +815,7 @@
           </div>
         </div>
 
-        <div class="modal-section modal-section-abo">
+        <div class="modal-section">
           <div class="modal-section-title">Abonnement</div>
           <p style="font-size:0.875rem;color:var(--text-muted);line-height:1.55;margin-bottom:0.875rem;">
             Gérez votre abonnement, mettez à jour votre carte, consultez vos factures, ou annulez quand vous voulez.
@@ -816,17 +826,19 @@
           <div class="settings-msg" id="portalMsg"></div>
         </div>
 
-        <!-- ═══ FULL WIDTH — Personnalisation SMS (2 sous-colonnes desktop) ═══ -->
-        <div class="modal-section modal-section-sms-full">
+        </div><!-- /.telnyx-abo-grid -->
+
+        <!-- ═══ SECTION 3 : Personnalisation SMS (2 sous-colonnes desktop) ═══ -->
+        <div class="modal-section">
           <div class="modal-section-title">Personnalisation SMS</div>
           <div class="sms-layout">
             <!-- Colonne gauche : formulaire -->
             <div>
               <div class="form-group">
                 <label for="sBusiness">Nom de votre entreprise</label>
-                <input type="text" id="sBusiness" placeholder="Plomberie Dupont" maxlength="30">
+                <input type="text" id="sBusiness" placeholder="Plomberie Dupont" maxlength="25">
                 <small style="font-size:0.78rem;color:var(--text-muted);display:block;margin-top:0.3rem;">
-                  Utilisé dans le texte du SMS (30 caractères max).
+                  Affiché dans le SMS (25 caractères max).
                 </small>
               </div>
 
@@ -849,13 +861,14 @@
               </div>
             </div>
 
-            <!-- Colonne droite : aperçu -->
+            <!-- Colonne droite : aperçu en bulle SMS -->
             <div>
-              <div class="form-group" style="background:var(--bg-card);border:1px solid var(--border);border-radius:0.5rem;padding:1rem 1.125rem;">
-                <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">Aperçu du SMS</div>
-                <div id="sms-preview" style="font-size:0.875rem;color:var(--text);line-height:1.55;font-family:system-ui;"></div>
+              <div class="sms-preview-label">Aperçu sur le téléphone du prospect</div>
+              <div class="sms-preview-bubble">
+                <div class="sms-preview-sender" id="sms-preview-sender">ReplyIt</div>
+                <div class="sms-preview-body" id="sms-preview"></div>
               </div>
-              <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted);line-height:1.55;">
+              <p style="margin-top:0.875rem;font-size:0.75rem;color:var(--text-muted);line-height:1.55;">
                 💡 <strong>Astuce :</strong> gardez une mention vers le formulaire (ex: "Précisez votre demande :") pour guider votre prospect.
               </p>
             </div>
