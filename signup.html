@@ -163,6 +163,11 @@
 
     <!-- Step 3 : plan -->
     <div class="form-card" id="step3" style="display:none; max-width:26rem;">
+      <!-- Banner "Connecté en tant que..." pour permettre de se déconnecter (ex: compte annulé) -->
+      <div id="logged-as-banner" style="display:none; margin-bottom:1rem; padding:0.65rem 0.85rem; background:var(--bg); border:1px solid var(--border); border-radius:0.5rem; font-size:0.8rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+        <span style="color:var(--text-muted);">Connecté en tant que <strong id="logged-as-email" style="color:var(--text);"></strong></span>
+        <button type="button" onclick="signOutFromSignup()" style="background:none; border:none; color:var(--accent); font-weight:600; cursor:pointer; font-size:0.8rem;">Se déconnecter</button>
+      </div>
       <!-- Toggle Mensuel / Annuel -->
       <div style="display:flex;justify-content:center;margin-bottom:1.25rem;">
         <div style="display:inline-flex;gap:0.25rem;padding:0.25rem;background:var(--bg);border:1px solid var(--border);border-radius:9999px;">
@@ -288,6 +293,23 @@
       document.getElementById('step3').style.display = 'none';
       document.getElementById('step' + num).style.display = 'block';
       setStep(num);
+      // Si on est à step 3 et que l'user est authentifié, afficher le banner "connecté en tant que"
+      if (num === 3) {
+        sbClient.auth.getSession().then(({ data }) => {
+          const email = data?.session?.user?.email;
+          const banner = document.getElementById('logged-as-banner');
+          if (email && banner) {
+            document.getElementById('logged-as-email').textContent = email;
+            banner.style.display = 'flex';
+          }
+        });
+      }
+    }
+
+    async function signOutFromSignup() {
+      await sbClient.auth.signOut();
+      stopConfirmationPoll();
+      window.location.reload();
     }
 
     function showError(id, msg) {
