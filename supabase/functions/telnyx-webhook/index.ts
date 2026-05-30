@@ -122,7 +122,7 @@ async function rejectTelnyxCall(callControlId: string): Promise<void> {
   }
 }
 
-async function createAirtableRecord(phone: string, occurredAt: string, clientEmail: string): Promise<void> {
+async function createAirtableRecord(phone: string, occurredAt: string, clientEmail: string, statut: string = 'À rappeler'): Promise<void> {
   const res = await fetch(`https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}`, {
     method: 'POST',
     headers: {
@@ -135,7 +135,7 @@ async function createAirtableRecord(phone: string, occurredAt: string, clientEma
           'Name': phone,
           'Numéro client': phone,
           "Heure d'appel": occurredAt,
-          'Statut': 'À rappeler',
+          'Statut': statut,
           'Email client': clientEmail,
         },
       }],
@@ -146,6 +146,18 @@ async function createAirtableRecord(phone: string, occurredAt: string, clientEma
     console.error('Airtable create failed:', await res.text());
     throw new Error('Airtable create failed');
   }
+}
+
+// Vérifie qu'un numéro est un mobile/fixe français valide (format E.164 ou local).
+// On évite d'envoyer des SMS à l'international (coûteux + souvent spam).
+function isFrenchPhone(phone: string): boolean {
+  if (!phone) return false;
+  const cleaned = phone.replace(/[\s\-\.\(\)]/g, '');
+  // Format international FR : +33[1-9]XXXXXXXX
+  if (/^\+33[1-9]\d{8}$/.test(cleaned)) return true;
+  // Format national : 0[1-9]XXXXXXXX
+  if (/^0[1-9]\d{8}$/.test(cleaned)) return true;
+  return false;
 }
 
 async function sendBrevoSMS(phone: string, profile: ClientProfile): Promise<void> {
@@ -203,6 +215,18 @@ Deno.serve(async (req) => {
 
     // Lookup du profil client par son numéro Telnyx (multi-tenant + perso SMS)
     const profile = await getClientProfile(toNumber);
+
+    // 🛡️ Anti-spam : on n'envoie de SMS qu'aux numéros FR (+33 ou 0X).
+    // Les numéros internationaux sont presque toujours du spam et coûtent cher en SMS.
+    if (!isFrenchPhone(phone)) {
+      await rejectPromise;
+      console.log('Non-French number rejected (SMS skipped):', phone);
+      // On créé quand même une trace Airtable avec un statut spécial pour visibilité dashboard
+      try {
+        await createAirtableRecord(phone, occurredAt, profile.email, 'Numéro non-FR');
+      } catch (e) { console.error('Airtable spam log failed:', e); }
+      return json({ skipped: 'non_french_number', phone });
+    }
 
     // Dédup
     if (await isAlreadyProcessed(phone, profile.email)) {
