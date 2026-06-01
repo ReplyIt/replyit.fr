@@ -116,6 +116,10 @@
         <input type="text" id="company" placeholder="Plomberie Dupont" autocomplete="organization">
       </div>
       <div class="field">
+        <label>Votre numéro de mobile <span style="font-weight:400; color:var(--text-muted); font-size:0.78rem;">(vos appels pro sonneront dessus)</span></label>
+        <input type="tel" id="mobile" placeholder="06 12 34 56 78" autocomplete="tel">
+      </div>
+      <div class="field">
         <label>Email professionnel</label>
         <input type="email" id="email" placeholder="vous@exemple.fr" autocomplete="email">
       </div>
@@ -330,18 +334,25 @@
       hideError('error1');
       const fullname = document.getElementById('fullname').value.trim();
       const company = document.getElementById('company').value.trim();
+      const mobileRaw = document.getElementById('mobile').value.trim();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
-      if (!fullname || !company || !email || !password) return showError('error1', 'Tous les champs sont obligatoires.');
+      if (!fullname || !company || !mobileRaw || !email || !password) return showError('error1', 'Tous les champs sont obligatoires.');
       if (password.length < 8) return showError('error1', 'Le mot de passe doit faire au moins 8 caractères.');
       if (!email.includes('@')) return showError('error1', 'Email invalide.');
+
+      // Normalise le mobile en format international +33 (ex: "06 12 34 56 78" → "+33612345678")
+      const mobileClean = mobileRaw.replace(/[\s.\-()]/g, '');
+      let mobile = mobileClean;
+      if (/^0[1-9]\d{8}$/.test(mobileClean)) mobile = '+33' + mobileClean.slice(1);
+      if (!/^\+33[1-9]\d{8}$/.test(mobile)) return showError('error1', 'Numéro de mobile invalide (ex : 06 12 34 56 78).');
 
       const btn = document.querySelector('#step1 .btn');
       btn.disabled = true;
       btn.textContent = 'Création du compte…';
 
-      userData = { fullname, company, email, password };
+      userData = { fullname, company, mobile, email, password };
 
       try {
         const { data, error } = await sbClient.auth.signUp({
@@ -349,7 +360,7 @@
           password,
           options: {
             emailRedirectTo: window.location.origin + '/signup',
-            data: { full_name: fullname, company_name: company, business_name: company }
+            data: { full_name: fullname, company_name: company, business_name: company, forward_to_phone: mobile }
           }
         });
 

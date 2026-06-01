@@ -40,29 +40,34 @@ Deno.serve(async (req) => {
       Deno.env.get('SB_SERVICE_ROLE_KEY')!,
     );
 
-    // Récupère les infos d'onboarding du user (business_name) depuis auth metadata
+    // Récupère les infos d'onboarding du user (business_name + mobile de forward) depuis auth metadata
     let businessName: string | null = null;
+    let forwardToPhone: string | null = null;
     try {
       const { data: userData } = await supabase.auth.admin.getUserById(userId);
       const meta = userData?.user?.user_metadata ?? {};
       businessName = meta.business_name || meta.company_name || null;
+      forwardToPhone = meta.forward_to_phone || null;
     } catch (err) {
       console.error('Failed to fetch user metadata:', err);
     }
 
-    // Mettre à jour le profil user avec le statut payé + perso SMS
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: userId,
-        email,
-        stripe_customer_id: session.customer as string,
-        stripe_subscription_id: session.subscription as string,
-        plan: session.metadata?.plan ?? 'starter',
-        status: 'active',
-        business_name: businessName,
-        updated_at: new Date().toISOString(),
-      });
+    // Mettre à jour le profil user avec le statut payé + le mobile de forward (collecté au signup)
+    const profileData: Record<string, unknown> = {
+      id: userId,
+      email,
+      stripe_customer_id: session.customer as string,
+      stripe_subscription_id: session.subscription as string,
+      plan: session.metadata?.plan ?? 'starter',
+      status: 'active',
+      business_name: businessName,
+      updated_at: new Date().toISOString(),
+    };
+    // N'écrase PAS un forward_to_phone existant si le signup n'en a pas fourni
+    // (ré-abonnement d'un ancien compte créé avant le champ mobile).
+    if (forwardToPhone) profileData.forward_to_phone = forwardToPhone;
+
+    const { error } = await supabase.from('profiles').upsert(profileData);
 
     if (error) {
       console.error('Supabase error:', error);
@@ -90,23 +95,25 @@ Deno.serve(async (req) => {
             to: [adminEmail],
             subject: `🆕 Nouveau client payant : ${businessName || email}`,
             html: `
-              <h2>Nouveau client à provisionner</h2>
+              <h2>Nouveau client à provisionner (modèle numéro dédié)</h2>
               <p>Un client vient de payer son abonnement Stripe. Action requise :</p>
               <ol>
                 <li>Acheter un numéro Telnyx FR (Mission Control → Numbers)</li>
-                <li>L'assigner à l'app Voice "ReplyIt"</li>
-                <li>Exécuter le SQL ci-dessous dans Supabase</li>
+                <li>L'assigner à l'app <strong>TeXML "ReplyIt TeXML"</strong> (PAS Call Control)</li>
+                <li>Exécuter le SQL ci-dessous (assigne le numéro Telnyx au client)</li>
+                <li>Dire au client : enregistrer ce numéro Telnyx dans ses contacts + vérifier que son mobile sonne ~18s avant sa messagerie (sinon ajuster le timeout)</li>
               </ol>
               <h3>Infos client</h3>
               <ul>
                 <li><strong>Email</strong> : ${email}</li>
                 <li><strong>Entreprise</strong> : ${businessName || '—'}</li>
+                <li><strong>Mobile (forward, déjà en DB)</strong> : ${forwardToPhone || '⚠️ MANQUANT'}</li>
                 <li><strong>Plan</strong> : ${session.metadata?.plan ?? 'starter'}</li>
                 <li><strong>User ID</strong> : ${userId}</li>
               </ul>
-              <h3>SQL à exécuter (remplacer +33XXX)</h3>
+              <h3>SQL à exécuter (remplacer +33XXX par le numéro Telnyx acheté)</h3>
               <pre style="background:#f1f5f9;padding:12px;border-radius:6px;font-size:13px;">${sql}</pre>
-              <p style="color:#64748b;font-size:13px;">Le client voit "Numéro en cours d'attribution" sur son dashboard jusqu'à ce que tu fasses cette opération.</p>
+              <p style="color:#64748b;font-size:13px;">Le client voit "Numéro en cours d'attribution" sur son dashboard jusqu'à ce que tu fasses cette opération. Le mobile de forward est déjà rempli (collecté au signup).</p>
             `,
           }),
         });
