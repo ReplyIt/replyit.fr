@@ -651,8 +651,8 @@
           <div class="calc-result-formula" id="calcFormula">(3 appels × 22 jours × 30% × 150€)</div>
           <div class="calc-roi" id="calcRoi">
             <div class="calc-roi-line">Soit <strong id="calcYearly">35 640 €</strong> perdus par an</div>
-            <div class="calc-roi-line">ReplyIt coûte <strong>50€/mois (600€/an)</strong></div>
-            <div class="calc-roi-final">ROI : <span id="calcRoiX">×59</span> votre investissement</div>
+            <div class="calc-roi-line">ReplyIt coûte <strong>99€/mois (1 188€/an)</strong></div>
+            <div class="calc-roi-final">ROI : <span id="calcRoiX">×30</span> votre investissement</div>
           </div>
         </div>
         <div class="calc-cta">
@@ -988,7 +988,7 @@
       const conv = (+document.getElementById('calcConv').value || 0) / 100;
       const total = Math.round(missed * 22 * conv * avg);
       const yearly = total * 12;
-      const replyitYear = 600;
+      const replyitYear = 1188;
       const roi = replyitYear > 0 ? Math.round(yearly / replyitYear) : 0;
       document.getElementById('calcTotal').textContent = total.toLocaleString('fr-FR') + ' €';
       document.getElementById('calcFormula').textContent =
