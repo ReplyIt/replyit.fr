@@ -745,6 +745,10 @@
                 <input type="text" id="sCompany" placeholder="Plomberie Dupont" autocomplete="organization">
               </div>
               <div class="form-group">
+                <label for="sForward">Votre numéro de mobile <span style="font-weight:400;color:var(--text-muted);font-size:0.78rem;">(où sonnent vos appels)</span></label>
+                <input type="tel" id="sForward" placeholder="06 12 34 56 78" autocomplete="tel">
+              </div>
+              <div class="form-group">
                 <label>Email</label>
                 <input type="email" id="sEmail" disabled style="opacity:0.6;cursor:not-allowed">
               </div>
@@ -787,20 +791,13 @@
           <div class="modal-section-title">Votre numéro ReplyIt</div>
           <!-- État "attribué" -->
           <div id="telnyx-state-assigned" class="form-group" style="display:none">
-            <label>Numéro à utiliser pour le renvoi conditionnel</label>
+            <label>Votre numéro professionnel ReplyIt</label>
             <input type="text" id="sTelnyx" disabled style="opacity:1;cursor:not-allowed;font-family:monospace;font-size:1.05rem;font-weight:600;background:var(--bg-card);">
             <small style="font-size:0.78rem;color:var(--text-muted);display:block;margin-top:0.5rem;line-height:1.5;">
-              <strong>Activer le renvoi conditionnel :</strong><br>
-              <code style="display:inline-block;margin-top:0.25rem;padding:0.15rem 0.4rem;background:var(--bg-card);border:1px solid var(--border);border-radius:0.4rem;font-size:0.85rem;">**61*&lt;votre-numéro&gt;*15#</code>
-              puis bouton appel (3 sonneries avant transfert).
+              <strong>C'est votre numéro pro.</strong> Donnez-le à vos clients et mettez-le partout : cartes de visite, site web, Google, devis. Quand quelqu'un l'appelle, votre mobile sonne normalement — vous décrochez comme d'habitude. Si vous ne répondez pas, votre client reçoit un SMS automatique et apparaît dans votre liste de rappel.
             </small>
-            <small style="font-size:0.78rem;color:#92400e;display:block;margin-top:0.5rem;padding:0.5rem 0.65rem;background:#fffbeb;border:1px solid #fde68a;border-radius:0.4rem;line-height:1.5;">
-              ⚠️ <strong>Vous avez déjà un renvoi configuré</strong> (messagerie vocale, autre service) ? Il sera remplacé par ReplyIt. Vous pouvez le réactiver à tout moment en désactivant ReplyIt avec le code ci-dessous.
-            </small>
-            <small style="font-size:0.78rem;color:var(--text-muted);display:block;margin-top:0.6rem;line-height:1.5;">
-              <strong>Désactiver le renvoi</strong> (désabonnement OU restaurer votre ancien renvoi) :<br>
-              <code style="display:inline-block;margin-top:0.25rem;padding:0.15rem 0.4rem;background:var(--bg-card);border:1px solid var(--border);border-radius:0.4rem;font-size:0.85rem;">##61#</code>
-              puis bouton appel.
+            <small style="font-size:0.78rem;color:#1e3a8a;display:block;margin-top:0.5rem;padding:0.5rem 0.65rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:0.4rem;line-height:1.5;">
+              💡 <strong>Conseil :</strong> enregistrez ce numéro dans vos contacts (ex : « Ma ligne ReplyIt ») pour qu'il sonne pleinement et ne soit pas filtré comme numéro inconnu.
             </small>
           </div>
           <!-- État "en attente" -->
@@ -1398,9 +1395,9 @@
               <div class="empty-cta">
                 <div class="empty-cta-title">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  Pas encore activé le service ?
+                  Comment ça marche ?
                 </div>
-                <div>Tapez ce code sur votre téléphone : <span class="empty-cta-code">**61*&lt;votre N° ReplyIt&gt;*15#</span></div>
+                <div>Diffusez votre <strong>numéro ReplyIt</strong> auprès de vos clients (cartes, site, Google, devis). Vos appels sonnent sur votre mobile ; si vous ne répondez pas, le client reçoit un SMS et apparaît ici.</div>
                 <div class="empty-cta-hint">Votre numéro ReplyIt est visible dans <strong>Paramètres → Votre numéro ReplyIt</strong>.</div>
               </div>
             </div>`;
@@ -1571,11 +1568,12 @@
       document.getElementById('settings-modal').style.display = 'flex';
       try {
         const { data: profile } = await sb.from('profiles')
-          .select('business_name, sms_template, telnyx_number')
+          .select('business_name, sms_template, telnyx_number, forward_to_phone')
           .eq('id', currentUser.id)
           .single();
         if (profile) {
           document.getElementById('sBusiness').value = profile.business_name || '';
+          document.getElementById('sForward').value = profile.forward_to_phone || '';
           document.getElementById('sTemplate').value = profile.sms_template
             || '{business_name} a bien reçu votre appel, on vous rappelle. Précisez votre demande :';
           // Switch les 2 états selon que le numéro est attribué ou pas
@@ -1612,17 +1610,36 @@
     async function saveProfile() {
       const fullName   = document.getElementById('sFull').value.trim();
       const company    = document.getElementById('sCompany').value.trim();
+      const forwardRaw = document.getElementById('sForward').value.trim();
       const msgEl      = document.getElementById('profileMsg');
       const btn        = document.getElementById('profileSaveBtn');
       msgEl.className  = 'settings-msg';
 
       if (!fullName) { msgEl.textContent = 'Le nom est requis.'; msgEl.className = 'settings-msg err'; return; }
 
+      // Valide + normalise le mobile de forward (FR → +33), s'il est renseigné
+      let forward = '';
+      if (forwardRaw) {
+        const c = forwardRaw.replace(/[\s.\-()]/g, '');
+        forward = /^0[1-9]\d{8}$/.test(c) ? '+33' + c.slice(1) : c;
+        if (!/^\+33[1-9]\d{8}$/.test(forward)) {
+          msgEl.textContent = 'Numéro de mobile invalide (ex : 06 12 34 56 78).'; msgEl.className = 'settings-msg err'; return;
+        }
+      }
+
       btn.disabled = true; btn.textContent = 'Enregistrement…';
       const { error } = await sb.auth.updateUser({ data: { full_name: fullName, company_name: company } });
+
+      // Met à jour le mobile de forward (colonne profil) via update-profile, s'il est renseigné
+      let fwdError = null;
+      if (!error && forward) {
+        const { error: fErr } = await sb.functions.invoke('update-profile', { body: { forward_to_phone: forward } });
+        fwdError = fErr;
+      }
+
       btn.disabled = false; btn.textContent = 'Enregistrer les infos';
 
-      if (error) { msgEl.textContent = 'Erreur, réessayez.'; msgEl.className = 'settings-msg err'; return; }
+      if (error || fwdError) { msgEl.textContent = 'Erreur, réessayez.'; msgEl.className = 'settings-msg err'; return; }
 
       // Mettre à jour le currentUser en mémoire
       if (currentUser) currentUser.user_metadata = { ...currentUser.user_metadata, full_name: fullName, company_name: company };

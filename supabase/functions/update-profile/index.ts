@@ -1,7 +1,7 @@
 // Mise à jour sécurisée d'un profil client.
 //
 // - Vérifie le JWT Supabase du caller
-// - N'accepte que les champs autorisés (business_name, sms_template)
+// - N'accepte que les champs autorisés (business_name, sms_template, forward_to_phone)
 // - Ne permet PAS de modifier status, plan, stripe_*, telnyx_number, email, id
 // - Update profiles WHERE id = auth.uid()
 
@@ -60,6 +60,18 @@ Deno.serve(async (req) => {
       update.sms_template = v.length > 0 ? v : null;
     }
 
+    // Mobile où les appels sont renvoyés. Essentiel au service → on exige un numéro FR
+    // valide (pas de valeur vide autorisée). Normalisé en +33.
+    if ('forward_to_phone' in body) {
+      const cleaned = (body.forward_to_phone ?? '').toString().replace(/[\s.\-()]/g, '');
+      let normalized = cleaned;
+      if (/^0[1-9]\d{8}$/.test(cleaned)) normalized = '+33' + cleaned.slice(1);
+      if (!/^\+33[1-9]\d{8}$/.test(normalized)) {
+        return json({ error: 'forward_to_phone must be a valid French number' }, 400);
+      }
+      update.forward_to_phone = normalized;
+    }
+
     if (Object.keys(update).length === 0) {
       return json({ error: 'No valid fields provided' }, 400);
     }
@@ -74,7 +86,7 @@ Deno.serve(async (req) => {
       .from('profiles')
       .update({ ...update, updated_at: new Date().toISOString() })
       .eq('id', user.id)
-      .select('business_name, sms_template')
+      .select('business_name, sms_template, forward_to_phone')
       .single();
 
     if (error) {
