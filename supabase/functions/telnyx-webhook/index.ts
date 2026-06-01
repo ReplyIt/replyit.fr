@@ -27,7 +27,6 @@ const TALLY_FORM_URL = Deno.env.get('TALLY_FORM_URL') ?? 'https://tally.so/r/VLD
 interface ClientProfile {
   email: string;
   businessName: string | null;
-  smsSender: string;
   smsTemplate: string | null;
 }
 
@@ -35,7 +34,6 @@ async function getClientProfile(telnyxNumber: string | undefined): Promise<Clien
   const fallback: ClientProfile = {
     email: FALLBACK_CLIENT_EMAIL,
     businessName: null,
-    smsSender: FALLBACK_SMS_SENDER,
     smsTemplate: null,
   };
   if (!telnyxNumber) return fallback;
@@ -46,7 +44,7 @@ async function getClientProfile(telnyxNumber: string | undefined): Promise<Clien
     );
     const { data } = await supabase
       .from('profiles')
-      .select('email, business_name, sms_sender, sms_template')
+      .select('email, business_name, sms_template')
       .eq('telnyx_number', telnyxNumber)
       .eq('status', 'active')
       .maybeSingle();
@@ -54,7 +52,6 @@ async function getClientProfile(telnyxNumber: string | undefined): Promise<Clien
     return {
       email: data.email ?? FALLBACK_CLIENT_EMAIL,
       businessName: data.business_name,
-      smsSender: data.sms_sender || FALLBACK_SMS_SENDER,
       smsTemplate: data.sms_template,
     };
   } catch (err) {
@@ -198,9 +195,8 @@ async function sendBrevoSMS(phone: string, profile: ClientProfile): Promise<void
   const content = buildSmsContent(profile, phone);
 
   // ⚠️ En France, les senders alphanumériques custom doivent être pré-enregistrés
-  // auprès de l'AFNUM. Pour scale, on utilise UN sender unique pré-validé (FALLBACK_SMS_SENDER)
+  // auprès de l'AFNUM. On utilise UN sender unique pré-validé (FALLBACK_SMS_SENDER)
   // pour tous les clients. Le branding du client passe via le body (business_name).
-  // Le champ profile.smsSender est gardé en DB pour usage futur (upgrade plan / autre provider).
   const sender = FALLBACK_SMS_SENDER;
 
   const res = await fetch('https://api.brevo.com/v3/transactionalSMS/sms', {
@@ -285,7 +281,7 @@ Deno.serve(async (req) => {
       sendBrevoSMS(phone, profile),
     ]);
 
-    return json({ success: true, phone, clientEmail: profile.email, sender: profile.smsSender });
+    return json({ success: true, phone, clientEmail: profile.email });
   } catch (err) {
     console.error('telnyx-webhook error:', err);
     // On retourne 200 quand même pour éviter que Telnyx retry inutilement

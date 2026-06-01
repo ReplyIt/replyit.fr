@@ -45,7 +45,6 @@ const DIAL_TIMEOUT_SEC = 18;
 interface ClientProfile {
   email: string;
   businessName: string | null;
-  smsSender: string;
   smsTemplate: string | null;
   forwardToPhone: string | null;
 }
@@ -54,7 +53,6 @@ async function getClientProfile(telnyxNumber: string | undefined): Promise<Clien
   const fallback: ClientProfile = {
     email: FALLBACK_CLIENT_EMAIL,
     businessName: null,
-    smsSender: FALLBACK_SMS_SENDER,
     smsTemplate: null,
     forwardToPhone: null,
   };
@@ -66,7 +64,7 @@ async function getClientProfile(telnyxNumber: string | undefined): Promise<Clien
     );
     const { data } = await supabase
       .from('profiles')
-      .select('email, business_name, sms_sender, sms_template, forward_to_phone')
+      .select('email, business_name, sms_template, forward_to_phone')
       .eq('telnyx_number', telnyxNumber)
       .eq('status', 'active')
       .maybeSingle();
@@ -74,7 +72,6 @@ async function getClientProfile(telnyxNumber: string | undefined): Promise<Clien
     return {
       email: data.email ?? FALLBACK_CLIENT_EMAIL,
       businessName: data.business_name,
-      smsSender: data.sms_sender || FALLBACK_SMS_SENDER,
       smsTemplate: data.sms_template,
       forwardToPhone: data.forward_to_phone,
     };

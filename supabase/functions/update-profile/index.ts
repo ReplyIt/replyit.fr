@@ -1,7 +1,7 @@
 // Mise à jour sécurisée d'un profil client.
 //
 // - Vérifie le JWT Supabase du caller
-// - N'accepte que les champs autorisés (business_name, sms_sender, sms_template)
+// - N'accepte que les champs autorisés (business_name, sms_template)
 // - Ne permet PAS de modifier status, plan, stripe_*, telnyx_number, email, id
 // - Update profiles WHERE id = auth.uid()
 
@@ -35,11 +35,6 @@ async function getAuthenticatedUser(req: Request) {
   return user;
 }
 
-// Validation : sender SMS = 3 à 11 chars A-Z / 0-9
-function isValidSmsSender(s: string): boolean {
-  return /^[A-Z0-9]{3,11}$/.test(s);
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
@@ -57,14 +52,6 @@ Deno.serve(async (req) => {
       const v = (body.business_name ?? '').toString().trim();
       if (v.length > 60) return json({ error: 'business_name max 60 chars' }, 400);
       update.business_name = v.length > 0 ? v : null;
-    }
-
-    if ('sms_sender' in body) {
-      const v = (body.sms_sender ?? '').toString().trim().toUpperCase();
-      if (v.length > 0 && !isValidSmsSender(v)) {
-        return json({ error: 'sms_sender must be 3-11 chars (A-Z, 0-9)' }, 400);
-      }
-      update.sms_sender = v.length > 0 ? v : null;
     }
 
     if ('sms_template' in body) {
@@ -87,7 +74,7 @@ Deno.serve(async (req) => {
       .from('profiles')
       .update({ ...update, updated_at: new Date().toISOString() })
       .eq('id', user.id)
-      .select('business_name, sms_sender, sms_template')
+      .select('business_name, sms_template')
       .single();
 
     if (error) {

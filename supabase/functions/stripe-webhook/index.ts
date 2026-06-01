@@ -40,14 +40,12 @@ Deno.serve(async (req) => {
       Deno.env.get('SB_SERVICE_ROLE_KEY')!,
     );
 
-    // Récupère les infos d'onboarding du user (business_name, sms_sender) depuis auth metadata
+    // Récupère les infos d'onboarding du user (business_name) depuis auth metadata
     let businessName: string | null = null;
-    let smsSender: string | null = null;
     try {
       const { data: userData } = await supabase.auth.admin.getUserById(userId);
       const meta = userData?.user?.user_metadata ?? {};
       businessName = meta.business_name || meta.company_name || null;
-      smsSender = meta.sms_sender || null;
     } catch (err) {
       console.error('Failed to fetch user metadata:', err);
     }
@@ -63,7 +61,6 @@ Deno.serve(async (req) => {
         plan: session.metadata?.plan ?? 'starter',
         status: 'active',
         business_name: businessName,
-        sms_sender: smsSender,
         updated_at: new Date().toISOString(),
       });
 
@@ -104,7 +101,6 @@ Deno.serve(async (req) => {
               <ul>
                 <li><strong>Email</strong> : ${email}</li>
                 <li><strong>Entreprise</strong> : ${businessName || '—'}</li>
-                <li><strong>Sender SMS</strong> : ${smsSender || '—'}</li>
                 <li><strong>Plan</strong> : ${session.metadata?.plan ?? 'starter'}</li>
                 <li><strong>User ID</strong> : ${userId}</li>
               </ul>
