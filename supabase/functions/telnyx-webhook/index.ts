@@ -87,9 +87,9 @@ function json(body: unknown, status = 200) {
   });
 }
 
-async function isAlreadyProcessed(phone: string, clientEmail: string): Promise<boolean> {
-  // (signature inchangée)
-  // Cherche un enregistrement Airtable du même numéro pour ce client dans la dernière heure
+// Dédup "même prospect dans la dernière heure" — pour éviter de spammer un prospect
+// qui rappelle plusieurs fois, et garder le dashboard propre (1 ligne par appelant/heure).
+async function isPhoneRecentlyProcessed(phone: string, clientEmail: string): Promise<boolean> {
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const formula = `AND({Numéro client}="${phone}", {Email client}="${clientEmail}", IS_AFTER({Heure d'appel}, "${oneHourAgo}"))`;
   const url = `https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}?filterByFormula=${encodeURIComponent(formula)}&maxRecords=1`;
@@ -98,38 +98,32 @@ async function isAlreadyProcessed(phone: string, clientEmail: string): Promise<b
     headers: { Authorization: `Bearer ${Deno.env.get('AIRTABLE_TOKEN')}` },
   });
   if (!res.ok) {
-    console.error('Airtable dedup check failed:', await res.text());
-    return false; // si échec, on continue plutôt que de bloquer
+    console.error('Airtable phone dedup check failed:', await res.text());
+    return false; // en cas d'erreur, on continue plutôt que de bloquer
   }
   const data = await res.json();
   return Array.isArray(data.records) && data.records.length > 0;
 }
 
-async function rejectTelnyxCall(callControlId: string): Promise<void> {
-  const res = await fetch(
-    `https://api.telnyx.com/v2/calls/${callControlId}/actions/reject`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${Deno.env.get('TELNYX_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ cause: 'CALL_REJECTED' }),
-    },
-  );
-  if (!res.ok) {
-    console.error('Telnyx reject failed:', await res.text());
-  }
-}
-
-async function createAirtableRecord(phone: string, occurredAt: string, clientEmail: string, statut: string = 'À rappeler'): Promise<void> {
+// Dédup atomique côté Airtable via performUpsert sur le champ "Call ID".
+// Si une ligne avec ce call_control_id existe déjà → Airtable l'update au lieu d'en créer
+// une nouvelle. Retourne `true` si une ligne a vraiment été créée, `false` si c'est un
+// retry Telnyx (= ne pas renvoyer de SMS).
+async function upsertAirtableRecord(
+  phone: string,
+  occurredAt: string,
+  clientEmail: string,
+  callControlId: string,
+  statut: string = 'À rappeler',
+): Promise<boolean> {
   const res = await fetch(`https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}`, {
-    method: 'POST',
+    method: 'PATCH',
     headers: {
       Authorization: `Bearer ${Deno.env.get('AIRTABLE_TOKEN')}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      performUpsert: { fieldsToMergeOn: ['Call ID'] },
       records: [{
         fields: {
           'Name': phone,
@@ -137,14 +131,54 @@ async function createAirtableRecord(phone: string, occurredAt: string, clientEma
           "Heure d'appel": occurredAt,
           'Statut': statut,
           'Email client': clientEmail,
+          'Call ID': callControlId,
         },
       }],
       typecast: true,
     }),
   });
   if (!res.ok) {
-    console.error('Airtable create failed:', await res.text());
-    throw new Error('Airtable create failed');
+    console.error('Airtable upsert failed:', await res.text());
+    throw new Error('Airtable upsert failed');
+  }
+  const data = await res.json();
+  // `createdRecords` = IDs des lignes nouvellement créées. Vide → c'est un update.
+  return Array.isArray(data.createdRecords) && data.createdRecords.length > 0;
+}
+
+// 2026-05-30 : passage de `reject` à `answer + hangup`.
+// Hypothèse : un reject instantané (CALL_REJECTED) déclenche un fallback vers la
+// messagerie carrier côté opérateur du client (constaté chez RED by SFR), ce qui
+// empêche les renvois conditionnels de fonctionner. En répondant à l'appel puis
+// en raccrochant proprement, le réseau voit l'appel comme "abouti normalement"
+// → pas de fallback messagerie, le renvoi conditionnel marche.
+// Coût marginal : ~0.0001€/appel (1-2 sec d'inbound facturé par Telnyx).
+async function answerThenHangup(callControlId: string): Promise<void> {
+  const headers = {
+    Authorization: `Bearer ${Deno.env.get('TELNYX_API_KEY')}`,
+    'Content-Type': 'application/json',
+  };
+
+  // 1. Answer : on accepte l'appel pour que le réseau client le voie comme abouti
+  const answerRes = await fetch(
+    `https://api.telnyx.com/v2/calls/${callControlId}/actions/answer`,
+    { method: 'POST', headers },
+  );
+  if (!answerRes.ok) {
+    console.error('Telnyx answer failed:', await answerRes.text());
+    return;
+  }
+
+  // 2. Petite pause pour que l'answer soit bien propagé côté réseau
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  // 3. Hangup propre (cause par défaut = NORMAL_CLEARING)
+  const hangupRes = await fetch(
+    `https://api.telnyx.com/v2/calls/${callControlId}/actions/hangup`,
+    { method: 'POST', headers },
+  );
+  if (!hangupRes.ok) {
+    console.error('Telnyx hangup failed:', await hangupRes.text());
   }
 }
 
@@ -210,34 +244,44 @@ Deno.serve(async (req) => {
       return json({ error: 'Missing required fields in payload' }, 400);
     }
 
-    // Reject de l'appel : on lance tout de suite pour libérer le canal Telnyx
-    const rejectPromise = rejectTelnyxCall(callControlId);
+    // Termination de l'appel : answer + hangup (au lieu de reject) pour ne pas
+    // déclencher le fallback messagerie côté carrier client. Cf. commentaire fonction.
+    const callTerminationPromise = answerThenHangup(callControlId);
 
     // Lookup du profil client par son numéro Telnyx (multi-tenant + perso SMS)
     const profile = await getClientProfile(toNumber);
 
     // 🛡️ Anti-spam : on n'envoie de SMS qu'aux numéros FR (+33 ou 0X).
-    // Les numéros internationaux sont presque toujours du spam et coûtent cher en SMS.
     if (!isFrenchPhone(phone)) {
-      await rejectPromise;
+      await callTerminationPromise;
       console.log('Non-French number rejected (SMS skipped):', phone);
-      // On créé quand même une trace Airtable avec un statut spécial pour visibilité dashboard
       try {
-        await createAirtableRecord(phone, occurredAt, profile.email, 'Numéro non-FR');
+        await upsertAirtableRecord(phone, occurredAt, profile.email, callControlId, 'Numéro non-FR');
       } catch (e) { console.error('Airtable spam log failed:', e); }
       return json({ skipped: 'non_french_number', phone });
     }
+    console.log('Incoming call from:', phone);
 
-    // Dédup
-    if (await isAlreadyProcessed(phone, profile.email)) {
-      await rejectPromise;
-      return json({ deduped: true, phone, clientEmail: profile.email });
+    // 1. Dédup "même prospect dans la dernière heure" : si le même numéro a déjà appelé
+    //    ce client dans l'heure, on bail out total (pas de ligne, pas de SMS).
+    if (await isPhoneRecentlyProcessed(phone, profile.email)) {
+      await callTerminationPromise;
+      console.log('Phone deduped (recent activity):', phone);
+      return json({ deduped: 'phone_recent', phone });
     }
 
-    // Airtable + Brevo en parallèle (avec reject déjà en cours)
+    // 2. Upsert Airtable atomique par Call ID (catch les retries Telnyx du même appel).
+    //    Si Telnyx retry → la ligne existe déjà → isNewCall=false → pas de SMS.
+    const isNewCall = await upsertAirtableRecord(phone, occurredAt, profile.email, callControlId);
+    if (!isNewCall) {
+      await callTerminationPromise;
+      console.log('Deduped (Telnyx retry):', callControlId);
+      return json({ deduped: 'telnyx_retry', callControlId });
+    }
+
+    // 3. Nouveau prospect (ou rappel après 1h) : SMS + finaliser termination en parallèle
     await Promise.all([
-      rejectPromise,
-      createAirtableRecord(phone, occurredAt, profile.email),
+      callTerminationPromise,
       sendBrevoSMS(phone, profile),
     ]);
 

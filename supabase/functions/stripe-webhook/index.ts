@@ -73,13 +73,16 @@ Deno.serve(async (req) => {
     }
 
     // Notifier l'admin pour qu'il achète + assigne un N° Telnyx à ce client
-    // (fire-and-forget : on n'attend pas la réponse pour ne pas bloquer Stripe)
-    try {
-      const resendKey  = Deno.env.get('RESEND_API_KEY');
-      const adminEmail = Deno.env.get('ADMIN_EMAIL') ?? 'contact@replyit.fr';
-      if (resendKey) {
+    const resendKey  = Deno.env.get('RESEND_API_KEY');
+    const adminEmail = Deno.env.get('ADMIN_EMAIL') ?? 'contact@replyit.fr';
+    console.log('Admin notification — resendKey present:', !!resendKey, 'adminEmail:', adminEmail);
+
+    if (!resendKey) {
+      console.warn('RESEND_API_KEY missing, skipping admin email');
+    } else {
+      try {
         const sql = `UPDATE profiles SET telnyx_number = '+33XXX' WHERE email = '${email}';`;
-        await fetch('https://api.resend.com/emails', {
+        const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${resendKey}`,
@@ -111,10 +114,14 @@ Deno.serve(async (req) => {
             `,
           }),
         });
+        const resendBody = await resendRes.text();
+        console.log('Resend response:', resendRes.status, resendBody);
+        if (!resendRes.ok) {
+          console.error('Resend API rejected:', resendRes.status, resendBody);
+        }
+      } catch (err) {
+        console.error('Resend fetch threw:', err);
       }
-    } catch (err) {
-      console.error('Failed to send admin notification:', err);
-      // On n'échoue pas le webhook pour autant : le profile est créé, c'est l'essentiel
     }
   }
 
