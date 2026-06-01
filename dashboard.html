@@ -323,6 +323,10 @@
     .td-time { font-size: 0.8125rem; color: var(--text-muted); white-space: nowrap; }
     .td-msg { color: var(--text-muted); max-width: 300px; line-height: 1.5; }
     .td-msg.has-msg { color: var(--text); }
+    .msg-toggle { display: none; align-items: center; gap: 0.3rem; background: none; border: none; color: var(--accent); font-weight: 600; font-size: 0.85rem; cursor: pointer; padding: 0.2rem 0; }
+    .msg-toggle:disabled { color: var(--text-muted); cursor: default; font-weight: 500; }
+    .msg-body { display: block; }
+    .msg-body.has-msg { color: var(--text); }
 
     .badge {
       display: inline-flex; align-items: center; gap: 0.375rem;
@@ -475,7 +479,21 @@
     @media (max-width: 768px) {
       .stats-row { grid-template-columns: repeat(2, 1fr); }
       .nav-user { display: none; }
-      thead th:nth-child(3), tbody td:nth-child(3) { display: none; }
+
+      /* Tableau → cartes empilées sur mobile */
+      .table-card table, .table-card tbody, .table-card tr, .table-card td { display: block; width: 100%; }
+      .table-card thead { display: none; }
+      .table-card tbody tr {
+        border: 1px solid var(--border); border-radius: var(--radius);
+        margin: 0.625rem 0.75rem; padding: 0.4rem 0.25rem 0.7rem;
+      }
+      .table-card tbody td { padding: 0.3rem 0.9rem; }
+      .table-card .td-num { font-size: 1.05rem; padding-top: 0.6rem; }
+      /* Message replié par défaut, dépliable au tap */
+      .table-card .msg-toggle { display: inline-flex; }
+      .table-card .td-msg .msg-body { display: none; }
+      .table-card tr.expanded .td-msg .msg-body { display: block; margin-top: 0.4rem; }
+      .table-card .status-sel { width: 100%; }
     }
 
     /* ── États de chargement / activation ── */
@@ -1292,6 +1310,11 @@
       }
     }
 
+    function toggleMsg(btn) {
+      const tr = btn.closest('tr');
+      if (tr) tr.classList.toggle('expanded');
+    }
+
     function renderTable() {
       const filtered = currentFilter === 'all'
         ? allRecords
@@ -1330,7 +1353,9 @@
           : `<span class="td-time-abs">${esc(absolute)}</span>`;
 
         const rawMsg = f['Message prospect'] || '';
-        const msgCell = `<span class="${rawMsg ? 'has-msg' : ''}">${truncateMsg(rawMsg)}</span>`;
+        const msgCell = rawMsg
+          ? `<button type="button" class="msg-toggle" onclick="toggleMsg(this)">💬 Voir la demande</button><div class="msg-body has-msg">${truncateMsg(rawMsg)}</div>`
+          : `<button type="button" class="msg-toggle" disabled>Pas de message</button><div class="msg-body">—</div>`;
 
         const statut = getStatus(r);
         const cls = statusCls(statut);
