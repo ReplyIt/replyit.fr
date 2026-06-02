@@ -214,7 +214,8 @@
       width: 100%;
     }
 
-    .page-header { margin-bottom: 2rem; }
+    .page-top { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .page-header { margin-bottom: 0; }
     .page-title { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.25rem; }
     .page-sub { font-size: 0.9375rem; color: var(--text-muted); }
 
@@ -300,12 +301,12 @@
     .btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
 
     /* Bannière CA récupéré — vert clair, contour + texte vert foncé */
-    .ca-banner { display: flex; align-items: center; gap: 1rem; background: var(--success-bg); border: 1px solid var(--success); color: var(--success); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
-    .ca-banner-icon { display: inline-flex; align-items: center; justify-content: center; width: 3rem; height: 3rem; flex-shrink: 0; border-radius: 0.75rem; background: var(--success); color: #fff; }
-    .ca-banner-icon svg { width: 1.6rem; height: 1.6rem; display: block; }
-    .ca-banner-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--success); opacity: 0.9; }
-    .ca-banner-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem; font-size: 1rem; color: var(--success); }
-    .ca-banner-figures strong { font-size: 1.5rem; font-weight: 800; color: var(--success); }
+    .ca-banner { display: inline-flex; align-items: center; gap: 0.85rem; flex: 0 0 auto; background: var(--success-bg); border: 1px solid var(--success); color: var(--success); border-radius: var(--radius-lg); padding: 0.9rem 1.25rem; box-shadow: var(--shadow-sm); }
+    .ca-banner-icon { display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; flex-shrink: 0; border-radius: 0.7rem; background: var(--success); color: #fff; }
+    .ca-banner-icon svg { width: 1.4rem; height: 1.4rem; display: block; }
+    .ca-banner-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--success); opacity: 0.9; }
+    .ca-banner-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem; margin-top: 0.15rem; font-size: 0.9rem; color: var(--success); }
+    .ca-banner-figures strong { font-size: 1.35rem; font-weight: 800; color: var(--success); }
     .ca-banner-sep { opacity: 0.4; }
 
     /* Total CA des deals décrochés — boîte dans le header de l'onglet décrochés
@@ -524,6 +525,9 @@
 
     @media (max-width: 768px) {
       .stats-row { grid-template-columns: repeat(2, 1fr); }
+      /* Header : titre puis bandeau CA empilés, bandeau pleine largeur */
+      .page-top { flex-direction: column; align-items: stretch; gap: 1rem; }
+      .ca-banner { width: 100%; }
       .nav-user { display: none; }
 
       /* Tableau → cartes empilées sur mobile */
@@ -736,13 +740,14 @@
       </nav>
 
       <main class="main">
-        <div class="page-header">
-          <h1 class="page-title" id="pageTitle">Tableau de bord</h1>
-          <p class="page-sub" id="pageSub">Vos appels manqués et réponses prospects</p>
-        </div>
+        <div class="page-top">
+          <div class="page-header">
+            <h1 class="page-title" id="pageTitle">Tableau de bord</h1>
+            <p class="page-sub" id="pageSub">Vos appels manqués et réponses prospects</p>
+          </div>
 
-        <!-- 💰 CA récupéré grâce à ReplyIt -->
-        <div class="ca-banner" id="ca-banner" style="display:none">
+          <!-- 💰 CA récupéré grâce à ReplyIt (compact, à droite du titre) -->
+          <div class="ca-banner" id="ca-banner" style="display:none">
           <div class="ca-banner-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7.5a6.5 7 0 1 0 0 9"/><line x1="4" y1="10.5" x2="13" y2="10.5"/><line x1="4" y1="13.5" x2="12" y2="13.5"/></svg></div>
           <div>
             <div class="ca-banner-label">CA récupéré grâce à ReplyIt</div>
@@ -751,6 +756,7 @@
               <span class="ca-banner-sep">·</span>
               <span><strong id="caTotal">0 €</strong> au total</span>
             </div>
+          </div>
           </div>
         </div>
 
