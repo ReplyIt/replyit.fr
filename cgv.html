@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>CGV — ReplyIt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#f8fafc;--border:#e2e8f0;--text:#0f172a;--muted:#475569;--accent:#0369a1;--radius:.75rem;--font:'Plus Jakarta Sans',system-ui,sans-serif;--tricolor-h:4px;--nav-h:4rem}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased}
+    .tricolor-bar{position:fixed;top:0;left:0;right:0;z-index:50;height:var(--tricolor-h);display:flex}
+    .tricolor-bar span{flex:1}.t-b{background:#002395}.t-w{background:#fff}.t-r{background:#ed2939}
+    .nav{position:fixed;top:var(--tricolor-h);left:0;right:0;height:var(--nav-h);z-index:40;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+    .logo{font-weight:700;font-size:1.25rem;letter-spacing:-.03em;color:var(--text)}.logo span{color:var(--accent)}
+    .nav a.back{font-size:.875rem;font-weight:600;color:var(--muted)}.nav a.back:hover{color:var(--accent)}
+    a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+    .legal{max-width:48rem;margin:0 auto;padding:calc(var(--tricolor-h) + var(--nav-h) + 2.5rem) 1.25rem 4rem}
+    .legal h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:.4rem}
+    .legal .updated{font-size:.85rem;color:var(--muted);margin-bottom:1.5rem}
+    .legal h2{font-size:1.15rem;font-weight:700;margin:2rem 0 .6rem;letter-spacing:-.02em}
+    .legal p,.legal li{color:#1e293b;font-size:.95rem}
+    .legal p{margin-bottom:.75rem}
+    .legal ul{margin:0 0 .75rem 1.25rem}.legal li{margin-bottom:.35rem}
+    .notice{background:#fef3c7;border:1px solid #fde68a;color:#92400e;border-radius:var(--radius);padding:1rem 1.1rem;font-size:.875rem;margin-bottom:2rem}
+    .todo{background:#fde68a;color:#92400e;font-weight:600;padding:0 .25rem;border-radius:.2rem}
+    footer{border-top:1px solid var(--border);padding:2rem 1.25rem;text-align:center;font-size:.8125rem;color:var(--muted)}
+    footer a{margin:0 .5rem}
+  </style>
+</head>
+<body>
+  <div class="tricolor-bar" aria-hidden="true"><span class="t-b"></span><span class="t-w"></span><span class="t-r"></span></div>
+  <nav class="nav">
+    <a href="/" class="logo">Reply<span>It</span></a>
+    <a href="/" class="back">← Retour à l'accueil</a>
+  </nav>
+
+  <main class="legal">
+    <h1>Conditions Générales de Vente</h1>
+    <div class="updated">Dernière mise à jour : <span class="todo">[À COMPLÉTER : date]</span></div>
+
+    <div class="notice">⚠️ Modèle de CGV B2B à compléter et à faire relire par un professionnel du droit avant publication. ReplyIt s'adresse exclusivement à des professionnels (artisans, TPE).</div>
+
+    <h2>Article 1 — Objet</h2>
+    <p>Les présentes CGV régissent la fourniture du service ReplyIt, édité par <span class="todo">[À COMPLÉTER : dénomination + SIRET]</span> (« ReplyIt »), à tout professionnel souscripteur (« le Client »). La souscription emporte acceptation pleine et entière des présentes CGV.</p>
+
+    <h2>Article 2 — Description du service</h2>
+    <p>ReplyIt fournit au Client un <strong>numéro professionnel dédié</strong>. Les appels reçus sur ce numéro sonnent sur le mobile du Client ; en cas d'appel manqué, ReplyIt envoie automatiquement un <strong>SMS</strong> à l'appelant et journalise l'appel dans un tableau de bord en ligne. Le Client peut suivre, qualifier et relancer ses prospects depuis ce tableau de bord.</p>
+
+    <h2>Article 3 — Compte et souscription</h2>
+    <p>Le Client crée un compte et fournit des informations exactes (notamment son numéro de mobile de renvoi). Le service est activé après mise en place du numéro dédié. Le Client est responsable de la confidentialité de ses identifiants.</p>
+
+    <h2>Article 4 — Prix et paiement</h2>
+    <p>Le service est facturé <strong>99 € par mois</strong> <span class="todo">[ou tarif annuel applicable]</span>. TVA non applicable, article 293 B du CGI (franchise en base) <span class="todo">[à confirmer selon ton régime]</span>. Le paiement s'effectue par carte bancaire via notre prestataire <strong>Stripe</strong>, par prélèvement mensuel d'avance. Le service est renouvelé automatiquement chaque mois jusqu'à résiliation.</p>
+
+    <h2>Article 5 — Durée et résiliation</h2>
+    <p>L'abonnement est <strong>sans engagement</strong>, conclu pour une durée d'un mois renouvelable. Le Client peut résilier <strong>à tout moment</strong> depuis son espace client. La résiliation prend effet à la fin de la période d'abonnement en cours déjà payée ; les sommes versées au titre de la période en cours ne sont pas remboursées au prorata.</p>
+
+    <h2>Article 6 — Obligations du Client</h2>
+    <ul>
+      <li>Utiliser le service dans le respect des lois en vigueur ;</li>
+      <li>Diffuser le numéro dédié auprès de ses propres prospects/clients uniquement ;</li>
+      <li>Informer ses prospects et recueillir, le cas échéant, leur consentement au traitement de leurs données, le Client étant responsable de traitement de ces données ;</li>
+      <li>Ne pas utiliser le service à des fins de prospection non sollicitée, de spam ou d'envoi de contenus illicites ;</li>
+      <li>Maintenir à jour son numéro de mobile de renvoi.</li>
+    </ul>
+
+    <h2>Article 7 — Disponibilité et responsabilité</h2>
+    <p>ReplyIt est tenu à une <strong>obligation de moyens</strong>. Le service dépend d'opérateurs et de prestataires tiers (téléphonie, SMS, hébergement) ; ReplyIt ne peut garantir la captation ni la délivrance de 100 % des appels ou SMS, ni une disponibilité ininterrompue. La responsabilité de ReplyIt, en cas de dommage prouvé, est limitée au montant des sommes payées par le Client au titre des <span class="todo">[À COMPLÉTER : ex. 3]</span> derniers mois. ReplyIt ne saurait être tenu responsable des pertes indirectes (perte de chiffre d'affaires, de clientèle, etc.).</p>
+
+    <h2>Article 8 — Données personnelles</h2>
+    <p>Le traitement des données est décrit dans la <a href="/confidentialite">Politique de confidentialité</a>. Pour les données des prospects captées via le service, le <strong>Client est responsable de traitement</strong> et ReplyIt agit en qualité de <strong>sous-traitant</strong> au sens de l'article 28 du RGPD, s'engageant à ne traiter ces données que pour fournir le service, à les sécuriser et à les supprimer à la fin du contrat.</p>
+
+    <h2>Article 9 — Numéro dédié et propriété</h2>
+    <p>Le numéro professionnel dédié est <strong>mis à disposition</strong> du Client pendant la durée de l'abonnement. Il n'est pas porté ni cédé au Client et peut être désattribué à la résiliation. La marque, le logiciel et l'interface ReplyIt restent la propriété exclusive de l'éditeur.</p>
+
+    <h2>Article 10 — Suspension</h2>
+    <p>En cas de défaut de paiement ou de manquement aux présentes CGV, ReplyIt peut suspendre ou résilier l'accès au service après information du Client.</p>
+
+    <h2>Article 11 — Force majeure</h2>
+    <p>La responsabilité de ReplyIt ne saurait être engagée en cas d'inexécution due à un cas de force majeure ou à une défaillance des réseaux/prestataires tiers.</p>
+
+    <h2>Article 12 — Modification des CGV</h2>
+    <p>ReplyIt peut modifier les présentes CGV. Le Client en est informé ; la poursuite de l'utilisation du service vaut acceptation des CGV mises à jour.</p>
+
+    <h2>Article 13 — Droit applicable et litiges</h2>
+    <p>Les présentes CGV sont soumises au <strong>droit français</strong>. Le service étant fourni entre professionnels, le droit de rétractation prévu pour les consommateurs ne s'applique pas. À défaut de résolution amiable, tout litige sera porté devant les tribunaux compétents du ressort du siège de l'éditeur <span class="todo">[à confirmer]</span>.</p>
+
+    <h2>Article 14 — Contact</h2>
+    <p><a href="mailto:contact@replyit.fr">contact@replyit.fr</a></p>
+  </main>
+
+  <footer>
+    <div>© 2026 ReplyIt</div>
+    <div style="margin-top:.5rem">
+      <a href="/mentions-legales">Mentions légales</a> ·
+      <a href="/confidentialite">Confidentialité</a> ·
+      <a href="/cgv">CGV</a>
+    </div>
+  </footer>
+</body>
+</html>

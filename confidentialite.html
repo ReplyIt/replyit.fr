@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Politique de confidentialité — ReplyIt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#f8fafc;--border:#e2e8f0;--text:#0f172a;--muted:#475569;--accent:#0369a1;--radius:.75rem;--font:'Plus Jakarta Sans',system-ui,sans-serif;--tricolor-h:4px;--nav-h:4rem}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased}
+    .tricolor-bar{position:fixed;top:0;left:0;right:0;z-index:50;height:var(--tricolor-h);display:flex}
+    .tricolor-bar span{flex:1}.t-b{background:#002395}.t-w{background:#fff}.t-r{background:#ed2939}
+    .nav{position:fixed;top:var(--tricolor-h);left:0;right:0;height:var(--nav-h);z-index:40;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+    .logo{font-weight:700;font-size:1.25rem;letter-spacing:-.03em;color:var(--text)}.logo span{color:var(--accent)}
+    .nav a.back{font-size:.875rem;font-weight:600;color:var(--muted)}.nav a.back:hover{color:var(--accent)}
+    a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+    .legal{max-width:48rem;margin:0 auto;padding:calc(var(--tricolor-h) + var(--nav-h) + 2.5rem) 1.25rem 4rem}
+    .legal h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:.4rem}
+    .legal .updated{font-size:.85rem;color:var(--muted);margin-bottom:1.5rem}
+    .legal h2{font-size:1.2rem;font-weight:700;margin:2rem 0 .6rem;letter-spacing:-.02em}
+    .legal h3{font-size:1rem;font-weight:700;margin:1.25rem 0 .4rem}
+    .legal p,.legal li{color:#1e293b;font-size:.95rem}
+    .legal p{margin-bottom:.75rem}
+    .legal ul{margin:0 0 .75rem 1.25rem}.legal li{margin-bottom:.35rem}
+    .notice{background:#fef3c7;border:1px solid #fde68a;color:#92400e;border-radius:var(--radius);padding:1rem 1.1rem;font-size:.875rem;margin-bottom:2rem}
+    .todo{background:#fde68a;color:#92400e;font-weight:600;padding:0 .25rem;border-radius:.2rem}
+    table{width:100%;border-collapse:collapse;margin:.5rem 0 1rem;font-size:.875rem}
+    th,td{border:1px solid var(--border);padding:.5rem .6rem;text-align:left;vertical-align:top}
+    th{background:#f1f5f9;font-weight:700}
+    footer{border-top:1px solid var(--border);padding:2rem 1.25rem;text-align:center;font-size:.8125rem;color:var(--muted)}
+    footer a{margin:0 .5rem}
+  </style>
+</head>
+<body>
+  <div class="tricolor-bar" aria-hidden="true"><span class="t-b"></span><span class="t-w"></span><span class="t-r"></span></div>
+  <nav class="nav">
+    <a href="/" class="logo">Reply<span>It</span></a>
+    <a href="/" class="back">← Retour à l'accueil</a>
+  </nav>
+
+  <main class="legal">
+    <h1>Politique de confidentialité</h1>
+    <div class="updated">Dernière mise à jour : <span class="todo">[À COMPLÉTER : date]</span></div>
+
+    <div class="notice">⚠️ Modèle RGPD à compléter et à faire relire (idéalement avocat / DPO) avant publication publique.</div>
+
+    <h2>1. Responsable du traitement</h2>
+    <p>Le responsable du traitement est l'éditeur de ReplyIt (<span class="todo">[À COMPLÉTER : dénomination + SIRET]</span>). Contact : <a href="mailto:contact@replyit.fr">contact@replyit.fr</a>.</p>
+    <p><strong>Rôles RGPD.</strong> ReplyIt agit :</p>
+    <ul>
+      <li>comme <strong>responsable de traitement</strong> pour les données de ses clients (les artisans / TPE abonnés) ;</li>
+      <li>comme <strong>sous-traitant</strong> (art. 28 RGPD) pour les données des prospects/appelants captées via le service, traitées <em>pour le compte</em> du client artisan, qui en est le responsable de traitement.</li>
+    </ul>
+
+    <h2>2. Données collectées</h2>
+    <h3>a) Données des clients (abonnés)</h3>
+    <ul>
+      <li>E-mail, mot de passe (stocké de façon chiffrée/hachée) ;</li>
+      <li>Nom de l'entreprise, numéro de mobile de renvoi, modèle de SMS personnalisé ;</li>
+      <li>Numéro professionnel dédié attribué ;</li>
+      <li>Données de facturation et d'abonnement (gérées par Stripe).</li>
+    </ul>
+    <h3>b) Données des prospects (appelants des clients)</h3>
+    <ul>
+      <li>Numéro de téléphone de l'appelant ;</li>
+      <li>Date et heure de l'appel, statut de traitement ;</li>
+      <li>Message éventuel laissé via le formulaire, montant éventuel renseigné par le client.</li>
+    </ul>
+
+    <h2>3. Finalités et base légale</h2>
+    <table>
+      <tr><th>Finalité</th><th>Base légale</th></tr>
+      <tr><td>Fourniture du service (capture des appels manqués, envoi du SMS, dashboard de suivi)</td><td>Exécution du contrat</td></tr>
+      <tr><td>Facturation et gestion des abonnements</td><td>Exécution du contrat / obligation légale</td></tr>
+      <tr><td>Support et communication liée au service</td><td>Intérêt légitime</td></tr>
+      <tr><td>Traitement des données des prospects</td><td>Pour le compte du client (responsable), sur base de son intérêt légitime / sa relation avec le prospect</td></tr>
+    </table>
+
+    <h2>4. Destinataires et sous-traitants</h2>
+    <p>Les données sont traitées par des sous-traitants techniques, sélectionnés pour leurs garanties de sécurité :</p>
+    <table>
+      <tr><th>Sous-traitant</th><th>Rôle</th><th>Localisation</th></tr>
+      <tr><td>Supabase</td><td>Base de données, authentification, fonctions serveur</td><td>UE (Irlande)</td></tr>
+      <tr><td>Stripe</td><td>Paiements et abonnements</td><td>UE / USA</td></tr>
+      <tr><td>Telnyx</td><td>Numéro dédié, acheminement des appels</td><td>UE / USA</td></tr>
+      <tr><td>Brevo</td><td>Envoi des SMS</td><td>UE</td></tr>
+      <tr><td>Tally</td><td>Formulaire de qualification prospect</td><td>UE</td></tr>
+      <tr><td>Resend</td><td>E-mails transactionnels / admin</td><td>UE / USA</td></tr>
+      <tr><td>GitHub Pages</td><td>Hébergement du site vitrine</td><td>USA</td></tr>
+    </table>
+    <p>Les transferts éventuels hors Union européenne (notamment vers les États-Unis) sont encadrés par les garanties appropriées prévues par le RGPD (clauses contractuelles types et/ou Data Privacy Framework).</p>
+    <p>ReplyIt ne <strong>vend jamais</strong> les données et ne contacte jamais les prospects de ses clients en son nom propre.</p>
+
+    <h2>5. Durée de conservation</h2>
+    <ul>
+      <li>Données de compte : pendant toute la durée de l'abonnement, puis supprimées ou anonymisées sous <span class="todo">[À COMPLÉTER : ex. 12 mois]</span> après résiliation (hors obligations comptables/fiscales : 10 ans pour les factures).</li>
+      <li>Journal des appels / données prospects : conservées le temps nécessaire au suivi par le client, puis supprimées sous <span class="todo">[À COMPLÉTER : ex. 24 mois]</span>.</li>
+    </ul>
+
+    <h2>6. Vos droits</h2>
+    <p>Conformément au RGPD, vous disposez des droits d'<strong>accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité</strong>. Pour les exercer : <a href="mailto:contact@replyit.fr">contact@replyit.fr</a>.</p>
+    <p>Si vous êtes un <em>prospect</em> dont les données ont été captées via le service, adressez votre demande directement à l'entreprise (le client ReplyIt) que vous avez contactée ; ReplyIt relaiera si nécessaire en tant que sous-traitant.</p>
+    <p>Vous pouvez introduire une réclamation auprès de la <strong>CNIL</strong> (<a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a>).</p>
+
+    <h2>7. Cookies</h2>
+    <p>Le site n'utilise <strong>pas de cookies publicitaires ni de traceurs marketing</strong>. Seuls des cookies/stockages strictement nécessaires au fonctionnement (session de connexion à l'espace client) sont utilisés. <span class="todo">[à confirmer si ajout d'analytics plus tard]</span></p>
+
+    <h2>8. Sécurité</h2>
+    <p>Les données sont hébergées dans l'Union européenne (Supabase), les mots de passe sont hachés, les accès sont restreints (Row Level Security), et les communications sont chiffrées (HTTPS).</p>
+
+    <h2>9. Contact</h2>
+    <p>Pour toute question relative à vos données : <a href="mailto:contact@replyit.fr">contact@replyit.fr</a>.</p>
+  </main>
+
+  <footer>
+    <div>© 2026 ReplyIt</div>
+    <div style="margin-top:.5rem">
+      <a href="/mentions-legales">Mentions légales</a> ·
+      <a href="/confidentialite">Confidentialité</a> ·
+      <a href="/cgv">CGV</a>
+    </div>
+  </footer>
+</body>
+</html>
