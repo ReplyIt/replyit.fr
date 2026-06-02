@@ -316,6 +316,7 @@
     .ca-decroches-head { display: flex; align-items: center; gap: 0.4rem; flex: 1; min-width: 0; margin: 0 1rem; font-size: 0.875rem; color: var(--success); border: 1px solid var(--success); background: var(--success-bg); border-radius: 0.75rem; padding: 0.5rem 0.85rem; }
     .ca-decroches-head[hidden] { display: none; }
     .ca-decroches-text { flex: 1; min-width: 0; }
+    .ca-dt-short { display: none; }
     .ca-decroches-head strong { font-weight: 800; white-space: nowrap; }
     .ca-decroches-head svg { width: 1rem; height: 1rem; flex-shrink: 0; }
 
@@ -570,8 +571,9 @@
       }
       .table-card .td-action .status-sel { width: auto; min-width: 8.5rem; }
       .table-card .td-action .montant-box { flex-basis: 100%; margin-left: 0; margin-top: 0.5rem; justify-content: flex-end; }
-      /* Onglet décrochés : montant aligné à gauche, sous le statut (pas perdu à droite) */
-      .table-card .answered-table .td-action .montant-box { justify-content: flex-start; margin-top: 0.4rem; }
+      /* Onglet décrochés : montant sur la même ligne que le statut (poussé à droite) */
+      .table-card .answered-table .td-action .montant-box { flex-basis: auto; margin-top: 0; }
+      .table-card .answered-table .td-action .montant-input { width: 5rem; }
       .table-card .td-msg    { order: 4; flex-basis: 100%; }
       /* Message replié par défaut, dépliable au tap */
       .table-card .msg-toggle { display: inline-flex; }
@@ -584,6 +586,8 @@
       .table-head .btn-refresh { order: 2; margin-left: auto; }
       /* Total CA décrochés : sur sa propre ligne sous le titre + Actualiser */
       .ca-decroches-head { order: 3; flex-basis: 100%; margin: 0.7rem 0 0; padding: 0.6rem 0.8rem; font-size: 0.82rem; }
+      .ca-dt-full { display: none; }
+      .ca-dt-short { display: inline; }
       /* Sur mobile : on masque le compact du header, on affiche celui placé au-dessus de l'historique */
       .next-compact--desktop.is-active { display: none; }
       .next-compact--mobile.is-active { display: flex; flex-wrap: wrap; margin: 0 0 1rem; }
@@ -853,7 +857,7 @@
           <div class="table-head">
             <span class="table-head-title"><span id="tableHeadLabel">Historique des appels</span> <span class="table-head-count" id="tableCount">0</span></span>
             <div class="next-compact next-compact--desktop" id="next-compact"></div>
-            <div class="ca-decroches-head" id="ca-decroches-head" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7.5a6.5 7 0 1 0 0 9"/><line x1="4" y1="10.5" x2="13" y2="10.5"/><line x1="4" y1="13.5" x2="12" y2="13.5"/></svg><span class="ca-decroches-text">Total CA généré via les appels décrochés : <strong id="caDecrochesTotal">0 €</strong></span></div>
+            <div class="ca-decroches-head" id="ca-decroches-head" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7.5a6.5 7 0 1 0 0 9"/><line x1="4" y1="10.5" x2="13" y2="10.5"/><line x1="4" y1="13.5" x2="12" y2="13.5"/></svg><span class="ca-decroches-text"><span class="ca-dt-full">Total CA généré via les appels décrochés :</span><span class="ca-dt-short">Total CA via appels décrochés :</span> <strong id="caDecrochesTotal">0 €</strong></span></div>
             <button class="btn-refresh" onclick="loadData()">↻ <span class="btn-refresh-text">Actualiser</span></button>
           </div>
           <div class="filters" id="filterPills">
