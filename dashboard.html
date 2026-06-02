@@ -315,7 +315,8 @@
     .montant-input.is-error { box-shadow: 0 0 0 2px var(--danger-bg); border-color: var(--danger); }
 
     /* "Prochain à rappeler" compact (dans la barre de titre de l'historique) */
-    .next-compact { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; margin: 0 1rem; font-size: 0.875rem; color: var(--text); border: 1px solid var(--accent); background: var(--accent-subtle); border-radius: 0.75rem; padding: 0.45rem 0.55rem 0.45rem 0.85rem; }
+    .next-compact { display: none; align-items: center; gap: 0.6rem; min-width: 0; font-size: 0.875rem; color: var(--text); border: 1px solid var(--accent); background: var(--accent-subtle); border-radius: 0.75rem; padding: 0.45rem 0.55rem 0.45rem 0.85rem; }
+    .next-compact--desktop.is-active { display: flex; flex: 1; margin: 0 1rem; }
     .next-compact-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
     .next-compact-label { font-weight: 700; }
     .next-compact-text a { color: var(--accent); font-weight: 700; }
@@ -410,7 +411,7 @@
     @media (min-width: 768px) { .next-callout { grid-template-columns: 1fr auto; align-items: center; } }
     .next-callout::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
     .next-header { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.5rem; }
-    .next-pulse { display: inline-block; vertical-align: middle; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.5s ease-in-out infinite; }
+    .next-pulse { display: inline-block; vertical-align: middle; margin-right: 0.4rem; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.5s ease-in-out infinite; }
     @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--accent-glow); } 50% { box-shadow: 0 0 0 8px transparent; } }
     .next-phone { font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; margin-bottom: 0.25rem; }
     .next-phone a { color: var(--text); }
@@ -535,10 +536,12 @@
       .table-head { flex-wrap: wrap; padding: 1rem 1.1rem; }
       .table-head .table-head-title { order: 1; }
       .table-head .btn-refresh { order: 2; margin-left: auto; }
-      .table-head .next-compact { order: 3; flex-basis: 100%; margin: 0.7rem 0 0; flex-wrap: wrap; }
-      .table-head .next-compact .next-compact-text { flex-basis: 100%; white-space: normal; }
-      .table-head .next-compact .btn-call-mini,
-      .table-head .next-compact .btn-mark-mini { flex: 1; justify-content: center; }
+      /* Sur mobile : on masque le compact du header, on affiche celui placé au-dessus de l'historique */
+      .next-compact--desktop.is-active { display: none; }
+      .next-compact--mobile.is-active { display: flex; flex-wrap: wrap; margin: 0 0 1rem; }
+      .next-compact--mobile .next-compact-text { flex-basis: 100%; white-space: normal; }
+      .next-compact--mobile .btn-call-mini,
+      .next-compact--mobile .btn-mark-mini { flex: 1; justify-content: center; }
       .btn-refresh-text { display: none; }
       .btn-refresh { padding: 0.4rem 0.65rem; font-size: 1rem; }
       /* Filtres : bande horizontale scrollable au lieu de wrapper sur plusieurs lignes */
@@ -780,10 +783,13 @@
           </div>
         </div>
 
+        <!-- Prochain à rappeler — version mobile (au-dessus de l'historique) -->
+        <div class="next-compact next-compact--mobile" id="next-compact-mobile"></div>
+
         <div class="table-card">
           <div class="table-head">
             <span class="table-head-title">Historique des appels <span class="table-head-count" id="tableCount">0</span></span>
-            <div class="next-compact" id="next-compact" style="display:none"></div>
+            <div class="next-compact next-compact--desktop" id="next-compact"></div>
             <button class="btn-refresh" onclick="loadData()">↻ <span class="btn-refresh-text">Actualiser</span></button>
           </div>
           <div class="filters" id="filterPills">
@@ -1302,12 +1308,13 @@
     }
 
     function renderNextCallout() {
-      const el = document.getElementById('next-compact');
-      if (!el) return;
+      const slots = [
+        document.getElementById('next-compact'),
+        document.getElementById('next-compact-mobile'),
+      ];
       const toCall = allRecords.filter(r => getStatus(r) === 'À rappeler');
       if (toCall.length === 0) {
-        el.style.display = 'none';
-        el.innerHTML = '';
+        slots.forEach(s => { if (s) { s.classList.remove('is-active'); s.innerHTML = ''; } });
         return;
       }
       // Priorité : ceux avec un message Tally rempli > ceux sans, puis du plus ancien au plus récent
@@ -1328,12 +1335,12 @@
         ? `<span class="next-compact-msg">— « ${esc(msg)} »</span>`
         : `<span class="next-compact-msg empty">— demande non précisée</span>`;
 
-      el.innerHTML = `
+      const html = `
         <span class="next-compact-text"><span class="next-pulse"></span> <span class="next-compact-label">Prochain à rappeler :</span> <a href="tel:${numEsc}"><strong>${esc(fmtNum)}</strong></a> ${msgHtml}</span>
         <a href="tel:${numEsc}" class="btn-call-mini">📞 Appeler</a>
         <button class="btn-mark-mini" onclick="markAsCalled('${recordId}')" title="Marquer comme rappelé">✓ Rappelé</button>
       `;
-      el.style.display = 'flex';
+      slots.forEach(s => { if (s) { s.innerHTML = html; s.classList.add('is-active'); } });
     }
 
     async function markAsCalled(recordId) {
