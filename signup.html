@@ -133,6 +133,10 @@
           </button>
         </div>
       </div>
+      <label class="terms-check" style="display:flex; align-items:flex-start; gap:0.5rem; font-size:0.8125rem; color:var(--text-muted); margin-top:0.75rem; line-height:1.45; cursor:pointer;">
+        <input type="checkbox" id="acceptTerms" style="margin-top:0.15rem; flex-shrink:0; width:1rem; height:1rem; accent-color:var(--accent); cursor:pointer;">
+        <span>J'accepte les <a href="/cgv" target="_blank" rel="noopener" style="color:var(--accent); font-weight:600;">CGV</a> et la <a href="/confidentialite" target="_blank" rel="noopener" style="color:var(--accent); font-weight:600;">politique de confidentialité</a>.</span>
+      </label>
       <div class="error" id="error1"></div>
       <button class="btn" onclick="registerUser()">Continuer →</button>
       <div class="login-link">Déjà un compte ? <a href="/dashboard">Se connecter</a></div>
@@ -341,6 +345,7 @@
       if (!fullname || !company || !mobileRaw || !email || !password) return showError('error1', 'Tous les champs sont obligatoires.');
       if (password.length < 8) return showError('error1', 'Le mot de passe doit faire au moins 8 caractères.');
       if (!email.includes('@')) return showError('error1', 'Email invalide.');
+      if (!document.getElementById('acceptTerms').checked) return showError('error1', 'Vous devez accepter les CGV et la politique de confidentialité.');
 
       // Normalise le mobile en format international +33 (ex: "06 12 34 56 78" → "+33612345678")
       const mobileClean = mobileRaw.replace(/[\s.\-()]/g, '');
