@@ -410,7 +410,7 @@
     @media (min-width: 768px) { .next-callout { grid-template-columns: 1fr auto; align-items: center; } }
     .next-callout::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
     .next-header { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.5rem; }
-    .next-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.5s ease-in-out infinite; }
+    .next-pulse { display: inline-block; vertical-align: middle; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.5s ease-in-out infinite; }
     @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 var(--accent-glow); } 50% { box-shadow: 0 0 0 8px transparent; } }
     .next-phone { font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; margin-bottom: 0.25rem; }
     .next-phone a { color: var(--text); }
@@ -536,6 +536,9 @@
       .table-head .table-head-title { order: 1; }
       .table-head .btn-refresh { order: 2; margin-left: auto; }
       .table-head .next-compact { order: 3; flex-basis: 100%; margin: 0.7rem 0 0; flex-wrap: wrap; }
+      .table-head .next-compact .next-compact-text { flex-basis: 100%; white-space: normal; }
+      .table-head .next-compact .btn-call-mini,
+      .table-head .next-compact .btn-mark-mini { flex: 1; justify-content: center; }
       .btn-refresh-text { display: none; }
       .btn-refresh { padding: 0.4rem 0.65rem; font-size: 1rem; }
       /* Filtres : bande horizontale scrollable au lieu de wrapper sur plusieurs lignes */
@@ -1326,8 +1329,7 @@
         : `<span class="next-compact-msg empty">— demande non précisée</span>`;
 
       el.innerHTML = `
-        <span class="next-pulse"></span>
-        <span class="next-compact-text"><span class="next-compact-label">Prochain à rappeler :</span> <a href="tel:${numEsc}"><strong>${esc(fmtNum)}</strong></a> ${msgHtml}</span>
+        <span class="next-compact-text"><span class="next-pulse"></span> <span class="next-compact-label">Prochain à rappeler :</span> <a href="tel:${numEsc}"><strong>${esc(fmtNum)}</strong></a> ${msgHtml}</span>
         <a href="tel:${numEsc}" class="btn-call-mini">📞 Appeler</a>
         <button class="btn-mark-mini" onclick="markAsCalled('${recordId}')" title="Marquer comme rappelé">✓ Rappelé</button>
       `;
