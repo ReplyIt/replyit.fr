@@ -301,7 +301,8 @@
 
     /* 💰 Bannière CA récupéré */
     .ca-banner { display: flex; align-items: center; gap: 1rem; background: linear-gradient(135deg, #047857, #059669); color: #fff; border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
-    .ca-banner-icon { font-size: 1.75rem; line-height: 1; }
+    .ca-banner-icon { line-height: 1; }
+    .ca-banner-icon svg { width: 2rem; height: 2rem; display: block; }
     .ca-banner-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85; }
     .ca-banner-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem; font-size: 1rem; }
     .ca-banner-figures strong { font-size: 1.5rem; font-weight: 800; }
@@ -315,6 +316,7 @@
     .table-tab { display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; padding: 0.7rem 0.9rem; border: none; background: none; font: inherit; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 150ms; }
     .table-tab:hover { color: var(--text); }
     .table-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .table-tab .tab-ico { width: 1.05rem; height: 1.05rem; flex-shrink: 0; }
     .table-tab .tab-count { font-size: 0.75rem; font-weight: 700; background: var(--accent-subtle); color: var(--accent); border-radius: 999px; padding: 0.05rem 0.5rem; }
     .table-tab:not(.active) .tab-count { background: var(--border); color: var(--text-muted); }
 
@@ -735,7 +737,7 @@
 
         <!-- 💰 CA récupéré grâce à ReplyIt -->
         <div class="ca-banner" id="ca-banner" style="display:none">
-          <div class="ca-banner-icon">💰</div>
+          <div class="ca-banner-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7.5a6.5 7 0 1 0 0 9"/><line x1="4" y1="10.5" x2="13" y2="10.5"/><line x1="4" y1="13.5" x2="12" y2="13.5"/></svg></div>
           <div>
             <div class="ca-banner-label">CA récupéré grâce à ReplyIt</div>
             <div class="ca-banner-figures">
@@ -803,8 +805,8 @@
 
         <div class="table-card">
           <div class="table-tabs">
-            <button class="table-tab active" data-tab="missed" onclick="setTab('missed')">📵 Appels manqués <span class="tab-count" id="tabCountMissed">0</span></button>
-            <button class="table-tab" data-tab="answered" onclick="setTab('answered')">📞 Appels décrochés <span class="tab-count" id="tabCountAnswered">0</span></button>
+            <button class="table-tab" data-tab="answered" onclick="setTab('answered')"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 2 16 8 22 8"/><line x1="23" y1="1" x2="16" y2="8"/><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Appels décrochés <span class="tab-count" id="tabCountAnswered">0</span></button>
+            <button class="table-tab active" data-tab="missed" onclick="setTab('missed')"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/><line x1="23" y1="1" x2="1" y2="23"/></svg> Appels manqués <span class="tab-count" id="tabCountMissed">0</span></button>
           </div>
           <div class="table-head">
             <span class="table-head-title"><span id="tableHeadLabel">Historique des appels</span> <span class="table-head-count" id="tableCount">0</span></span>
@@ -1552,7 +1554,7 @@
       if (recs.length === 0) {
         document.getElementById('tableContent').innerHTML = `
           <div class="empty-state" style="padding:3rem 2rem;">
-            <div class="empty-icon" style="font-size:2rem;">📞</div>
+            <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 2 16 8 22 8"/><line x1="23" y1="1" x2="16" y2="8"/><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
             <div class="empty-title">Aucun appel décroché enregistré</div>
             <div class="empty-sub">Les appels que vous décrochez via votre numéro ReplyIt apparaissent ici. Marquez ceux qui deviennent des clients (« Converti » + montant) pour suivre votre CA généré.</div>
           </div>`;
