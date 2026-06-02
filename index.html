@@ -481,8 +481,9 @@
       .how .stepper { margin-bottom: 1.75rem; }
       .how .panel.active { gap: 1.25rem; }
       .how .panel-mock { gap: 0.7rem; }
-      .how .mphone { width: 208px; height: 344px; }
-      .how .mphone-time { font-size: 2.05rem; }
+      .how .mphone { width: 190px; height: 314px; }
+      .how .mphone-time { font-size: 1.9rem; }
+      .how .section-header { margin-bottom: 2rem; }
       .how .mphone-date { margin-bottom: 12px; }
       .how .lock-layer, .how .s3-view { padding: 34px 11px 11px; }
       .how .mdash { max-width: 300px; }
@@ -1232,7 +1233,7 @@
       const dots = [...stepper.querySelectorAll('.step-dot')];
       const panels = [...stage.querySelectorAll('.panel')];
       const TOTAL = panels.length;
-      let current = 0, timer = null, s3a = null, s3b = null;
+      let current = 0, timer = null, s3a = null, s3b = null, visible = false;
 
       function countTo(id, target, dur) {
         const el = document.getElementById(id); if (!el) return;
@@ -1284,10 +1285,23 @@
       document.getElementById('howPrev').addEventListener('click', () => { prev(); startAuto(); });
       dots.forEach(d => d.addEventListener('click', () => { go(+d.dataset.step); startAuto(); }));
       stage.addEventListener('mouseenter', stopAuto);
-      stage.addEventListener('mouseleave', startAuto);
+      stage.addEventListener('mouseleave', () => { if (visible) startAuto(); });
 
       go(0);
-      startAuto();
+
+      // Joue l'animation + lance l'auto-play seulement quand la section est à l'écran
+      // (sinon, sur mobile, l'anim du mockup se jouerait hors champ et serait ratée).
+      const section = document.getElementById('comment-ca-marche');
+      if ('IntersectionObserver' in window && section) {
+        new IntersectionObserver((entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) { visible = true; replayMock(current); startAuto(); }
+            else { visible = false; stopAuto(); }
+          });
+        }, { threshold: 0.25 }).observe(section);
+      } else {
+        startAuto();
+      }
     })();
   </script>
 </body>
