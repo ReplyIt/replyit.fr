@@ -307,9 +307,11 @@
     .ca-banner-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem; font-size: 1rem; color: var(--success); }
     .ca-banner-figures strong { font-size: 1.5rem; font-weight: 800; color: var(--success); }
     .ca-banner-sep { opacity: 0.4; }
-    .ca-banner-genere { margin-top: 0.55rem; padding-top: 0.5rem; border-top: 1px solid var(--success-border); font-size: 0.85rem; color: var(--success); }
-    .ca-banner-genere strong { font-weight: 800; }
-    .ca-banner-genere-hint { opacity: 0.75; font-size: 0.78rem; margin-left: 0.35rem; }
+
+    /* Barre CA dans l'onglet Appels décrochés (suivi des deals, hors attribution ReplyIt) */
+    .answered-ca-bar { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-size: 0.875rem; color: var(--success); background: var(--success-bg); border-bottom: 1px solid var(--success-border); }
+    .answered-ca-bar strong { font-weight: 800; }
+    .answered-ca-bar svg { width: 1rem; height: 1rem; flex-shrink: 0; }
 
     /* Onglets Appels manqués / décrochés */
     .table-tabs { display: flex; gap: 0.25rem; padding: 0.5rem 1.25rem 0; border-bottom: 1px solid var(--border); }
@@ -744,10 +746,6 @@
               <span><strong id="caMonth">0 €</strong> ce mois-ci</span>
               <span class="ca-banner-sep">·</span>
               <span><strong id="caTotal">0 €</strong> au total</span>
-            </div>
-            <div class="ca-banner-genere" id="ca-genere-line" style="display:none">
-              CA généré total : <strong id="caGenereTotal">0 €</strong>
-              <span class="ca-banner-genere-hint">récupéré + appels décrochés</span>
             </div>
           </div>
         </div>
@@ -1464,18 +1462,20 @@
       if (tr) tr.classList.toggle('expanded');
     }
 
-    // 💰 CA récupéré = appels MANQUÉS convertis (le chiffre anti-churn : l'argent sauvé).
-    //    CA généré total = récupéré + deals sur appels DÉCROCHÉS.
+    // 💰 CA récupéré = appels MANQUÉS convertis UNIQUEMENT (le chiffre anti-churn, attribuable
+    //    à ReplyIt). Les deals sur appels DÉCROCHÉS sont comptés à part (decrochesTotal) et
+    //    affichés DANS l'onglet décrochés — JAMAIS dans le bandeau "grâce à ReplyIt".
     function updateCA() {
       const now = new Date();
       const m = now.getMonth(), y = now.getFullYear();
-      let recupMonth = 0, recupTotal = 0, genereTotal = 0;
+      let recupMonth = 0, recupTotal = 0, decrochesTotal = 0;
       allRecords.forEach(r => {
         if (getStatus(r) !== 'Converti') return;
         const montant = Number(r.fields['Montant']) || 0;
         if (montant <= 0) return;
-        genereTotal += montant;                 // tout deal converti (manqué OU décroché)
-        if (!isAnswered(r)) {                    // CA récupéré = appels manqués uniquement
+        if (isAnswered(r)) {                     // deals sur appels décrochés (suivi, hors attribution)
+          decrochesTotal += montant;
+        } else {                                  // CA récupéré = appels manqués uniquement
           recupTotal += montant;
           const iso = r.fields["Heure d'appel"];
           if (iso) { const d = new Date(iso); if (d.getMonth() === m && d.getFullYear() === y) recupMonth += montant; }
@@ -1484,12 +1484,9 @@
       const fmt = n => n.toLocaleString('fr-FR') + ' €';
       setText('caMonth', fmt(recupMonth));
       setText('caTotal', fmt(recupTotal));
-      setText('caGenereTotal', fmt(genereTotal));
+      setText('caDecrochesTotal', fmt(decrochesTotal));   // barre de l'onglet décrochés (no-op si absent)
       const banner = document.getElementById('ca-banner');
-      if (banner) banner.style.display = allRecords.length > 0 ? 'flex' : 'none';
-      // La ligne "CA généré total" n'apparaît que s'il y a des deals sur appels décrochés
-      const genereLine = document.getElementById('ca-genere-line');
-      if (genereLine) genereLine.style.display = genereTotal > recupTotal ? '' : 'none';
+      if (banner) banner.style.display = missedRecords().length > 0 ? 'flex' : 'none';
     }
 
     function renderTable() {
@@ -1645,8 +1642,15 @@
         </tr>`;
       });
 
+      const decrochesTotal = recs.reduce((s, r) => {
+        if (getStatus(r) !== 'Converti') return s;
+        const mt = Number(r.fields['Montant']) || 0;
+        return mt > 0 ? s + mt : s;
+      }, 0);
+      const caBar = `<div class="answered-ca-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7.5a6.5 7 0 1 0 0 9"/><line x1="4" y1="10.5" x2="13" y2="10.5"/><line x1="4" y1="13.5" x2="12" y2="13.5"/></svg> Deals sur appels décrochés : <strong id="caDecrochesTotal">${decrochesTotal.toLocaleString('fr-FR')} €</strong></div>`;
+
       const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('tableContent').innerHTML = `
+      document.getElementById('tableContent').innerHTML = caBar + `
         <table>
           <thead><tr>
             <th>Numéro</th>
