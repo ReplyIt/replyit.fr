@@ -502,6 +502,15 @@
       .table-card .msg-toggle { display: inline-flex; }
       .table-card .td-msg .msg-body { display: none; }
       .table-card tr.expanded .td-msg .msg-body { display: block; margin-top: 0.5rem; }
+
+      /* Header : titre + Actualiser sur une seule ligne (bouton en icône seule) */
+      .table-head { flex-wrap: nowrap; padding: 1rem 1.1rem; }
+      .btn-refresh-text { display: none; }
+      .btn-refresh { padding: 0.4rem 0.65rem; font-size: 1rem; }
+      /* Filtres : bande horizontale scrollable au lieu de wrapper sur plusieurs lignes */
+      .filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 0.7rem 1.1rem; }
+      .filters::-webkit-scrollbar { display: none; }
+      .filter-pill { flex: 0 0 auto; }
     }
 
     /* ── États de chargement / activation ── */
@@ -730,7 +739,7 @@
         <div class="table-card">
           <div class="table-head">
             <span class="table-head-title">Historique des appels <span class="table-head-count" id="tableCount">0</span></span>
-            <button class="btn-refresh" onclick="loadData()">↻ Actualiser</button>
+            <button class="btn-refresh" onclick="loadData()">↻ <span class="btn-refresh-text">Actualiser</span></button>
           </div>
           <div class="filters" id="filterPills">
             <button class="filter-pill active" data-filter="all" onclick="setFilter('all')">Tous <span class="filter-pill-count" id="fc-all">0</span></button>
