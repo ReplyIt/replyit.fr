@@ -379,6 +379,95 @@
        ║  Anchor offset for sticky nav                               ║
        ╚════════════════════════════════════════════════════════════╝ */
     [id] { scroll-margin-top: calc(var(--tricolor-h) + var(--nav-h) + 1rem); }
+
+    /* ╔════════════════════════════════════════════════════════════╗
+       ║  COMMENT ÇA MARCHE — version interactive (scopée sous .how)  ║
+       ╚════════════════════════════════════════════════════════════╝ */
+    .how .stepper { position: relative; display: flex; justify-content: space-between; align-items: center; max-width: 38rem; margin: 0 auto 2.5rem; padding: 0 0.5rem; }
+    .how .stepper::before { content: ''; position: absolute; left: 1.5rem; right: 1.5rem; top: 50%; transform: translateY(-50%); border-top: 2px dashed var(--border); z-index: 0; }
+    .how .step-dot { position: relative; z-index: 1; width: 2.75rem; height: 2.75rem; border-radius: 9999px; background: var(--bg-card); border: 2px solid var(--border); color: var(--text-light); font-weight: 800; font-size: 1.05rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); }
+    .how .step-dot:hover { border-color: var(--accent-hover); color: var(--accent); }
+    .how .step-dot.done { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+    .how .step-dot.active { background: var(--accent); border-color: var(--accent); color: #fff; transform: scale(1.18); box-shadow: 0 6px 18px var(--accent-subtle); }
+    .how .stage { max-width: 60rem; margin: 0 auto; }
+    .how .panel { display: none; }
+    .how .panel.active { display: grid; gap: 2rem; align-items: center; animation: howFadeUp 420ms cubic-bezier(0.16,1,0.3,1) both; }
+    @media (min-width: 900px) { .how .panel.active { grid-template-columns: 1fr 1fr; gap: 3rem; } }
+    @keyframes howFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .how .panel-text { order: 2; text-align: center; }
+    @media (min-width: 900px) { .how .panel-text { order: 1; text-align: left; } }
+    .how .panel-step-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 0.6rem; }
+    .how .panel-title { font-size: clamp(1.4rem, 3vw, 1.9rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 0.75rem; }
+    .how .panel-desc { color: var(--text-muted); font-size: 1.0625rem; line-height: 1.65; }
+    .how .panel-tag { display: inline-block; font-size: 0.78rem; font-weight: 700; color: var(--accent); background: var(--accent-subtle); padding: 0.3rem 0.7rem; border-radius: 9999px; margin-top: 1rem; }
+    .how .panel-mock { order: 1; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    @media (min-width: 900px) { .how .panel-mock { order: 2; } }
+    .how .mock-caption { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: inline-flex; align-items: center; gap: 0.4rem; background: var(--bg-card); border: 1px solid var(--border); padding: 0.35rem 0.8rem; border-radius: 9999px; box-shadow: var(--shadow-sm); }
+    .how .how-nav { display: flex; align-items: center; justify-content: center; gap: 1.25rem; margin-top: 3rem; }
+    .how .arrow { width: 3rem; height: 3rem; border-radius: 9999px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-sm); transition: var(--transition); }
+    .how .arrow:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .how .arrow svg { width: 1.25rem; height: 1.25rem; }
+    .how .how-counter { font-size: 0.95rem; font-weight: 700; color: var(--text-muted); min-width: 3.5rem; text-align: center; }
+    .how .how-counter b { color: var(--accent); }
+    /* mockups */
+    .how .mphone { position: relative; width: 232px; height: 384px; background: linear-gradient(145deg,#2c2c2f,#0d0d0f); border-radius: 42px; padding: 9px; box-shadow: var(--shadow-lg), inset 0 0 0 2px #3a3a3c; }
+    .how .mphone::before { content: ''; position: absolute; left: -2px; top: 92px; width: 3px; height: 56px; border-radius: 3px; background: #0d0d0f; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); }
+    .how .mphone::after { content: ''; position: absolute; right: -2px; top: 110px; width: 3px; height: 42px; border-radius: 3px; background: #0d0d0f; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); }
+    .how .mphone-scr { position: relative; width: 100%; height: 100%; background: linear-gradient(165deg,#e6edf6 0%,#f4f7fb 55%,#eef2f7 100%); border-radius: 34px; overflow: hidden; }
+    .how .mphone-scr::before { content: ''; position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 66px; height: 19px; background: #0a0a0a; border-radius: 9999px; z-index: 6; box-shadow: 0 1px 3px rgba(0,0,0,0.35); }
+    .how .mphone-scr::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 7; background: linear-gradient(130deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0) 26%); }
+    .how .lock-layer { position: absolute; inset: 0; padding: 38px 12px 12px; display: flex; flex-direction: column; }
+    .how .mphone-time { text-align: center; font-size: 2.5rem; font-weight: 700; color: #1e293b; letter-spacing: -0.02em; line-height: 1.1; }
+    .how .mphone-date { text-align: center; font-size: 0.72rem; font-weight: 600; color: #475569; margin-bottom: 16px; }
+    .how .mnotif { background: rgba(255,255,255,0.97); border-radius: 14px; padding: 10px 11px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+    .how .mnotif-head { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
+    .how .mnotif-ic { width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; color: #fff; flex-shrink: 0; }
+    .how .mnotif-app { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; flex: 1; }
+    .how .mnotif-time { font-size: 0.6rem; color: #94a3b8; }
+    .how .mnotif-title { font-size: 0.74rem; font-weight: 700; color: #0f172a; }
+    .how .mnotif-body { font-size: 0.7rem; color: #334155; line-height: 1.35; margin-top: 2px; }
+    .how .mnotif-body a { color: var(--accent); font-weight: 700; }
+    .how .slide-in { animation: howSlideIn 600ms cubic-bezier(0.16,1,0.3,1) both; }
+    @keyframes howSlideIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+    .how .pulse-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ef4444; margin-right: 4px; animation: howPdot 1.2s ease-in-out infinite; }
+    @keyframes howPdot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .how .sms-link { position: relative; white-space: nowrap; }
+    .how .tap { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-38%); font-size: 1.5rem; opacity: 0; z-index: 8; pointer-events: none; }
+    .how .tap.go { animation: howTap 900ms ease both; }
+    @keyframes howTap { 0% { opacity: 0; transform: translate(-50%,-38%) scale(1.3); } 30% { opacity: 1; } 55% { transform: translate(-50%,-38%) scale(0.8); } 100% { opacity: 0; transform: translate(-50%,-38%) scale(1); } }
+    .how .tap-ring { position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent); transform: translate(-50%,-50%) scale(0.3); opacity: 0; z-index: 8; pointer-events: none; }
+    .how .tap-ring.go { animation: howRing 900ms ease both; }
+    @keyframes howRing { 0% { opacity: 0.85; transform: translate(-50%,-50%) scale(0.3); } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.8); } }
+    .how .s3-view { position: absolute; inset: 0; padding: 38px 12px 12px; transition: opacity 400ms ease; }
+    .how .s3-sms { opacity: 1; }
+    .how .s3-form { opacity: 0; display: flex; flex-direction: column; justify-content: center; }
+    .how .s3-screen.toform .s3-sms { opacity: 0; }
+    .how .s3-screen.toform .s3-form { opacity: 1; }
+    .how .pform-h { font-size: 0.82rem; font-weight: 800; color: #0f172a; }
+    .how .pform-sub { font-size: 0.62rem; color: #64748b; margin-bottom: 10px; }
+    .how .pform-label { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 4px; }
+    .how .pform-input { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 9px; padding: 7px 9px; font-size: 0.7rem; min-height: 2.1rem; color: #0f172a; margin-bottom: 10px; }
+    .how .typed::after { content: ''; display: inline-block; width: 1.5px; height: 0.9em; background: var(--accent); margin-left: 1px; vertical-align: -2px; animation: howCaret 0.8s step-end infinite; }
+    @keyframes howCaret { 50% { opacity: 0; } }
+    .how .pform-btn { background: var(--accent); color: #fff; font-weight: 700; font-size: 0.72rem; text-align: center; padding: 9px; border-radius: 9px; }
+    .how .mdash { width: 100%; max-width: 330px; display: flex; flex-direction: column; gap: 0.6rem; }
+    .how .mdash-banner { display: flex; align-items: center; gap: 0.65rem; background: var(--success-bg); border: 1px solid var(--success); border-radius: var(--radius); padding: 0.7rem 0.85rem; box-shadow: var(--shadow-md); }
+    .how .mdash-ic { width: 2.2rem; height: 2.2rem; border-radius: 0.6rem; background: var(--success); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; }
+    .how .mdash-label { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--success); opacity: 0.9; }
+    .how .mdash-figs { font-size: 0.78rem; color: var(--success); margin-top: 1px; }
+    .how .mdash-figs b { font-size: 1.05rem; font-weight: 800; }
+    .how .mdash-sep { opacity: 0.4; margin: 0 0.15rem; }
+    .how .mdash-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .how .mdash-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.55rem 0.6rem; box-shadow: var(--shadow-sm); }
+    .how .mdash-stat span { display: block; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+    .how .mdash-stat b { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; }
+    .how .mdash-row { display: flex; align-items: center; gap: 0.55rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 0.65rem; padding: 0.55rem 0.7rem; box-shadow: var(--shadow-sm); }
+    .how .mdash-row.in { animation: howRowIn 500ms cubic-bezier(0.16,1,0.3,1) both; }
+    @keyframes howRowIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .how .mdash-num { font-size: 0.8rem; font-weight: 700; color: var(--text); flex: 1; }
+    .how .mdash-badge { font-size: 0.66rem; font-weight: 700; padding: 0.18rem 0.5rem; border-radius: 9999px; background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+    .how .badge-todo { background: var(--accent-subtle); color: var(--accent); border-color: #bae6fd; }
+    .how .badge-eur { font-size: 0.78rem; font-weight: 800; color: var(--success); }
   </style>
 </head>
 <body>
@@ -575,48 +664,156 @@
     </div>
   </section>
 
-  <!-- ╔════════════ COMMENT ÇA MARCHE — Chapitres ════════════╗ -->
-  <section id="comment-ca-marche">
+  <!-- ╔════════════ COMMENT ÇA MARCHE — interactif ════════════╗ -->
+  <section id="comment-ca-marche" class="how">
     <div class="container">
       <header class="section-header">
         <div class="section-tag">Comment ça marche</div>
-        <h2 class="section-title">Quatre étapes, <em>zéro stress</em></h2>
-        <p class="section-desc">Gardez votre numéro habituel. ReplyIt vous donne un numéro dédié pour vos nouveaux prospects — sur Google, vos pubs, votre site. Il sonne sur votre mobile et transforme chaque appel manqué en SMS automatique.</p>
+        <h2 class="section-title">De l'appel manqué au <em>chiffre d'affaires</em></h2>
+        <p class="section-desc">Installation clé en main. Un numéro pro dédié pour vos nouveaux prospects, ReplyIt s'occupe du reste.</p>
       </header>
 
-      <div class="chapters">
-        <div class="chapter">
-          <div class="chapter-num">01</div>
-          <div>
-            <div class="chapter-title">Un client vous appelle, vous ne pouvez pas répondre</div>
-            <p class="chapter-text">Vous êtes en intervention, en réunion, ou tout simplement en pause. Votre téléphone sonne, l'appel est manqué.</p>
-            <span class="chapter-tag">1 appel manqué = 1 client perdu</span>
+      <div class="stepper" id="howStepper">
+        <button class="step-dot active" data-step="0">1</button>
+        <button class="step-dot" data-step="1">2</button>
+        <button class="step-dot" data-step="2">3</button>
+        <button class="step-dot" data-step="3">4</button>
+      </div>
+
+      <div class="stage" id="howStage">
+
+        <!-- Étape 1 — téléphone du PRO -->
+        <div class="panel active" data-step="0">
+          <div class="panel-text">
+            <div class="panel-step-label">Étape 1</div>
+            <h3 class="panel-title">Un prospect appelle, vous ne pouvez pas répondre</h3>
+            <p class="panel-desc">Vous êtes en intervention, en réunion, ou il est 21h. L'appel sur votre numéro ReplyIt est manqué — comme tous les jours.</p>
+            <span class="panel-tag">1 appel manqué = 1 client qui file chez le concurrent</span>
+          </div>
+          <div class="panel-mock">
+            <div class="mphone"><div class="mphone-scr">
+              <div class="lock-layer">
+                <div class="mphone-time">21:04</div>
+                <div class="mphone-date">mardi 2 juin</div>
+                <div class="mnotif slide-in">
+                  <div class="mnotif-head">
+                    <div class="mnotif-ic" style="background:#ef4444;">✆</div>
+                    <div class="mnotif-app">Téléphone</div>
+                    <div class="mnotif-time">à l'instant</div>
+                  </div>
+                  <div class="mnotif-title"><span class="pulse-dot"></span>Appel manqué</div>
+                  <div class="mnotif-body">+33 6 12 34 56 78</div>
+                </div>
+              </div>
+            </div></div>
+            <span class="mock-caption">📱 Votre téléphone</span>
           </div>
         </div>
-        <div class="chapter">
-          <div class="chapter-num">02</div>
-          <div>
-            <div class="chapter-title">ReplyIt détecte l'appel manqué en temps réel</div>
-            <p class="chapter-text">Notre système détecte l'appel manqué et identifie le numéro de l'appelant. Aucune action de votre part.</p>
-            <span class="chapter-tag">100% automatique</span>
+
+        <!-- Étape 2 — téléphone du PROSPECT -->
+        <div class="panel" data-step="1">
+          <div class="panel-text">
+            <div class="panel-step-label">Étape 2</div>
+            <h3 class="panel-title">Un SMS pro part en moins de 5 secondes</h3>
+            <p class="panel-desc">ReplyIt détecte l'appel manqué et envoie automatiquement un SMS personnalisé à votre nom. Le prospect sait qu'il n'est pas ignoré — vous gardez la main.</p>
+            <span class="panel-tag">100% automatique, jour et nuit</span>
+          </div>
+          <div class="panel-mock">
+            <div class="mphone"><div class="mphone-scr">
+              <div class="lock-layer">
+                <div class="mphone-time">21:04</div>
+                <div class="mphone-date">mardi 2 juin</div>
+                <div class="mnotif slide-in">
+                  <div class="mnotif-head">
+                    <div class="mnotif-ic" style="background:var(--success);">✉</div>
+                    <div class="mnotif-app">Messages</div>
+                    <div class="mnotif-time">à l'instant</div>
+                  </div>
+                  <div class="mnotif-title">Plomberie Dupont</div>
+                  <div class="mnotif-body">A bien reçu votre appel, on vous rappelle. Précisez votre demande : <a>tally.so/…</a></div>
+                </div>
+              </div>
+            </div></div>
+            <span class="mock-caption">📱 Téléphone de votre prospect</span>
           </div>
         </div>
-        <div class="chapter">
-          <div class="chapter-num">03</div>
-          <div>
-            <div class="chapter-title">Un SMS personnalisé est envoyé à votre prospect</div>
-            <p class="chapter-text">"<em>Plomberie Dupont a bien reçu votre appel, on vous rappelle. Précisez votre demande</em>" → en moins de 5 secondes après l'appel manqué.</p>
-            <span class="chapter-tag">Personnalisé à votre marque</span>
+
+        <!-- Étape 3 — prospect tape le lien → formulaire s'ouvre -->
+        <div class="panel" data-step="2">
+          <div class="panel-text">
+            <div class="panel-step-label">Étape 3</div>
+            <h3 class="panel-title">Le prospect précise sa demande</h3>
+            <p class="panel-desc">Il tape sur le lien du SMS et remplit un formulaire ultra-court (30 s). Vous ne rappelez plus à l'aveugle : vous savez déjà ce qu'il veut.</p>
+            <span class="panel-tag">Fini le rappel "au pif"</span>
+          </div>
+          <div class="panel-mock">
+            <div class="mphone"><div class="mphone-scr s3-screen" id="s3screen">
+              <div class="s3-view s3-sms">
+                <div class="mphone-time">21:04</div>
+                <div class="mphone-date">mardi 2 juin</div>
+                <div class="mnotif">
+                  <div class="mnotif-head">
+                    <div class="mnotif-ic" style="background:var(--success);">✉</div>
+                    <div class="mnotif-app">Messages</div>
+                    <div class="mnotif-time">à l'instant</div>
+                  </div>
+                  <div class="mnotif-title">Plomberie Dupont</div>
+                  <div class="mnotif-body">A bien reçu votre appel, on vous rappelle. Précisez votre demande : <a class="sms-link">tally.so/…<span class="tap-ring" id="s3ring"></span><span class="tap" id="s3tap">👆</span></a></div>
+                </div>
+              </div>
+              <div class="s3-view s3-form">
+                <div class="pform-h">Votre demande</div>
+                <div class="pform-sub">Plomberie Dupont vous rappelle vite 👇</div>
+                <div class="pform-label">Votre besoin</div>
+                <div class="pform-input"><span class="typed">Fuite sous l'évier, assez urgent</span></div>
+                <div class="pform-btn">Envoyer ma demande</div>
+              </div>
+            </div></div>
+            <span class="mock-caption">📱 Téléphone de votre prospect</span>
           </div>
         </div>
-        <div class="chapter">
-          <div class="chapter-num">04</div>
-          <div>
-            <div class="chapter-title">Vous recevez la demande qualifiée sur votre dashboard</div>
-            <p class="chapter-text">Le prospect précise sa demande via un formulaire ultra-court (30 sec). Vous rappelez au bon moment, avec le bon contexte.</p>
-            <span class="chapter-tag">Plus de "rappel à l'aveugle"</span>
+
+        <!-- Étape 4 — dashboard fidèle -->
+        <div class="panel" data-step="3">
+          <div class="panel-text">
+            <div class="panel-step-label">Étape 4</div>
+            <h3 class="panel-title">Vous rappelez gagnant — et suivez votre CA récupéré</h3>
+            <p class="panel-desc">Tout arrive sur votre dashboard : qui rappeler en priorité, et surtout l'argent que ReplyIt vous a fait gagner.</p>
+            <span class="panel-tag">Le CA que vous laissiez filer, récupéré</span>
+          </div>
+          <div class="panel-mock">
+            <div class="mdash" id="step4dash">
+              <div class="mdash-banner">
+                <div class="mdash-ic">€</div>
+                <div>
+                  <div class="mdash-label">CA récupéré grâce à ReplyIt</div>
+                  <div class="mdash-figs"><b id="caMonth">0 €</b> ce mois-ci <span class="mdash-sep">·</span> <b id="caTotal">0 €</b> au total</div>
+                </div>
+              </div>
+              <div class="mdash-stats">
+                <div class="mdash-stat"><span>Manqués</span><b style="color:var(--accent)">24</b></div>
+                <div class="mdash-stat"><span>Convertis</span><b style="color:var(--success)">9</b></div>
+                <div class="mdash-stat"><span>Taux</span><b style="color:var(--success)">38%</b></div>
+              </div>
+              <div class="mdash-row"><span class="mdash-num">06 12 34 56 78</span><span class="mdash-badge">Converti</span><span class="badge-eur">+540 €</span></div>
+              <div class="mdash-row"><span class="mdash-num">07 65 43 21 09</span><span class="mdash-badge">Converti</span><span class="badge-eur">+320 €</span></div>
+              <div class="mdash-row"><span class="mdash-num">06 88 12 90 45</span><span class="mdash-badge badge-todo">À rappeler</span></div>
+              <div class="mdash-row"><span class="mdash-num">07 41 55 02 18</span><span class="mdash-badge badge-todo">À rappeler</span></div>
+            </div>
+            <span class="mock-caption">💻 Votre dashboard ReplyIt</span>
           </div>
         </div>
+
+      </div>
+
+      <div class="how-nav">
+        <button class="arrow" id="howPrev" aria-label="Étape précédente">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="how-counter"><b id="howCurStep">1</b> / 4</span>
+        <button class="arrow" id="howNext" aria-label="Étape suivante">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
       </div>
     </div>
   </section>
@@ -1001,6 +1198,72 @@
       if (el) el.addEventListener('input', updateCalc);
     });
     updateCalc();
+
+    // ── Comment ça marche — carrousel interactif ──
+    (function () {
+      const stepper = document.getElementById('howStepper');
+      const stage = document.getElementById('howStage');
+      if (!stepper || !stage) return;
+      const dots = [...stepper.querySelectorAll('.step-dot')];
+      const panels = [...stage.querySelectorAll('.panel')];
+      const TOTAL = panels.length;
+      let current = 0, timer = null, s3a = null, s3b = null;
+
+      function countTo(id, target, dur) {
+        const el = document.getElementById(id); if (!el) return;
+        const t0 = performance.now();
+        function tick(now) {
+          const p = Math.min(1, (now - t0) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(target * eased).toLocaleString('fr-FR') + ' €';
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+      function animateDash() {
+        countTo('caMonth', 1240, 1100);
+        countTo('caTotal', 3480, 1400);
+        const rows = document.querySelectorAll('#step4dash .mdash-row');
+        rows.forEach((r, i) => { r.classList.remove('in'); void r.offsetWidth; setTimeout(() => r.classList.add('in'), 120 * i); });
+      }
+      function runStep3() {
+        const screen = document.getElementById('s3screen');
+        const tap = document.getElementById('s3tap');
+        const ring = document.getElementById('s3ring');
+        if (!screen) return;
+        clearTimeout(s3a); clearTimeout(s3b);
+        screen.classList.remove('toform');
+        tap.classList.remove('go'); ring.classList.remove('go');
+        s3a = setTimeout(() => { void tap.offsetWidth; tap.classList.add('go'); ring.classList.add('go'); }, 1000);
+        s3b = setTimeout(() => { screen.classList.add('toform'); }, 1950);
+      }
+      function replayMock(step) {
+        clearTimeout(s3a); clearTimeout(s3b);
+        panels[step].querySelectorAll('.slide-in').forEach(n => { n.style.animation = 'none'; void n.offsetWidth; n.style.animation = ''; });
+        if (step === 2) runStep3();
+        if (step === 3) animateDash();
+      }
+      function go(step) {
+        current = (step + TOTAL) % TOTAL;
+        panels.forEach((p, i) => p.classList.toggle('active', i === current));
+        dots.forEach((d, i) => { d.classList.toggle('active', i === current); d.classList.toggle('done', i < current); });
+        const c = document.getElementById('howCurStep'); if (c) c.textContent = current + 1;
+        replayMock(current);
+      }
+      function next() { go(current + 1); }
+      function prev() { go(current - 1); }
+      function startAuto() { stopAuto(); timer = setInterval(next, 6000); }
+      function stopAuto() { if (timer) clearInterval(timer); }
+
+      document.getElementById('howNext').addEventListener('click', () => { next(); startAuto(); });
+      document.getElementById('howPrev').addEventListener('click', () => { prev(); startAuto(); });
+      dots.forEach(d => d.addEventListener('click', () => { go(+d.dataset.step); startAuto(); }));
+      stage.addEventListener('mouseenter', stopAuto);
+      stage.addEventListener('mouseleave', startAuto);
+
+      go(0);
+      startAuto();
+    })();
   </script>
 </body>
 </html>
