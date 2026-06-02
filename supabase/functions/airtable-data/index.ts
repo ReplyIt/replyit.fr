@@ -79,15 +79,31 @@ Deno.serve(async (req) => {
   }
 
   if (req.method === 'PATCH') {
-    const { id, statut } = await req.json();
-    if (!id || !statut) return json({ error: 'Missing id or statut' }, 400);
+    const { id, statut, montant } = await req.json();
+    if (!id) return json({ error: 'Missing id' }, 400);
+
+    const fields: Record<string, unknown> = {};
+    if (typeof statut === 'string' && statut.length > 0) {
+      fields.Statut = statut.normalize('NFC');
+    }
+    if (montant !== undefined) {
+      // montant: nombre >= 0, ou null/'' pour vider le champ
+      if (montant === null || montant === '') {
+        fields.Montant = null;
+      } else {
+        const n = Number(montant);
+        if (!Number.isFinite(n) || n < 0) return json({ error: 'Invalid montant' }, 400);
+        fields.Montant = n;
+      }
+    }
+    if (Object.keys(fields).length === 0) return json({ error: 'Nothing to update' }, 400);
 
     const res = await fetch(
       `https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}/${id}`,
       {
         method: 'PATCH',
         headers: atHeaders,
-        body: JSON.stringify({ fields: { Statut: statut.normalize('NFC') }, typecast: true }),
+        body: JSON.stringify({ fields, typecast: true }),
       },
     );
     const data = await res.json();

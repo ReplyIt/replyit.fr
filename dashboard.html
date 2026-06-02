@@ -299,6 +299,21 @@
     }
     .btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
 
+    /* 💰 Bannière CA récupéré */
+    .ca-banner { display: flex; align-items: center; gap: 1rem; background: linear-gradient(135deg, #047857, #059669); color: #fff; border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+    .ca-banner-icon { font-size: 1.75rem; line-height: 1; }
+    .ca-banner-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85; }
+    .ca-banner-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem; font-size: 1rem; }
+    .ca-banner-figures strong { font-size: 1.5rem; font-weight: 800; }
+    .ca-banner-sep { opacity: 0.5; }
+
+    /* Montant des leads convertis */
+    .montant-box { display: inline-flex; align-items: center; gap: 0.2rem; font-weight: 700; color: var(--success); margin-left: 0.5rem; }
+    .montant-box[hidden] { display: none; }
+    .montant-input { width: 6rem; padding: 0.3rem 0.5rem; border: 1px solid var(--success-border); border-radius: 0.5rem; font-size: 0.85rem; font-weight: 700; color: var(--success); background: var(--success-bg); }
+    .montant-input.is-saved { box-shadow: 0 0 0 2px var(--success-bg); border-color: var(--success); }
+    .montant-input.is-error { box-shadow: 0 0 0 2px var(--danger-bg); border-color: var(--danger); }
+
     table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 
     thead th {
@@ -494,9 +509,10 @@
       .table-card .td-time   { order: 2; margin-left: auto; text-align: right; }
       .table-card .td-action {
         order: 3; flex-basis: 100%; margin-top: 0.6rem;
-        display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem;
       }
       .table-card .td-action .status-sel { width: auto; min-width: 8.5rem; }
+      .table-card .td-action .montant-box { flex-basis: 100%; margin-left: 0; margin-top: 0.5rem; justify-content: flex-end; }
       .table-card .td-msg    { order: 4; flex-basis: 100%; }
       /* Message replié par défaut, dépliable au tap */
       .table-card .msg-toggle { display: inline-flex; }
@@ -683,6 +699,19 @@
         <div class="page-header">
           <h1 class="page-title" id="pageTitle">Tableau de bord</h1>
           <p class="page-sub" id="pageSub">Vos appels manqués et réponses prospects</p>
+        </div>
+
+        <!-- 💰 CA récupéré grâce à ReplyIt -->
+        <div class="ca-banner" id="ca-banner" style="display:none">
+          <div class="ca-banner-icon">💰</div>
+          <div>
+            <div class="ca-banner-label">CA récupéré grâce à ReplyIt</div>
+            <div class="ca-banner-figures">
+              <span><strong id="caMonth">0 €</strong> ce mois-ci</span>
+              <span class="ca-banner-sep">·</span>
+              <span><strong id="caTotal">0 €</strong> au total</span>
+            </div>
+          </div>
         </div>
 
         <!-- Callout "Prochain à rappeler" — rempli dynamiquement -->
@@ -1332,6 +1361,26 @@
       if (tr) tr.classList.toggle('expanded');
     }
 
+    // 💰 Calcule le CA récupéré (somme des montants des leads "Converti") : mois en cours + total
+    function updateCA() {
+      const now = new Date();
+      const m = now.getMonth(), y = now.getFullYear();
+      let month = 0, total = 0;
+      allRecords.forEach(r => {
+        if (getStatus(r) !== 'Converti') return;
+        const montant = Number(r.fields['Montant']) || 0;
+        if (montant <= 0) return;
+        total += montant;
+        const iso = r.fields["Heure d'appel"];
+        if (iso) { const d = new Date(iso); if (d.getMonth() === m && d.getFullYear() === y) month += montant; }
+      });
+      const fmt = n => n.toLocaleString('fr-FR') + ' €';
+      const elM = document.getElementById('caMonth'); if (elM) elM.textContent = fmt(month);
+      const elT = document.getElementById('caTotal'); if (elT) elT.textContent = fmt(total);
+      const banner = document.getElementById('ca-banner');
+      if (banner) banner.style.display = allRecords.length > 0 ? 'flex' : 'none';
+    }
+
     function renderTable() {
       const filtered = currentFilter === 'all'
         ? allRecords
@@ -1379,6 +1428,7 @@
 
         const statut = getStatus(r);
         const cls = statusCls(statut);
+        const montant = (f['Montant'] !== undefined && f['Montant'] !== null) ? f['Montant'] : '';
 
         rows += `<tr class="${statut === 'Sans suite' ? 'row-closed' : recent ? 'row-new' : ''}">
           <td class="td-num">${recent ? '<span class="badge-new-dot"></span>' : ''}${numCell}</td>
@@ -1392,6 +1442,7 @@
               <option value="Converti"   ${statut==='Converti'  ?'selected':''}>Converti</option>
               <option value="Sans suite" ${statut==='Sans suite'?'selected':''}>Sans suite</option>
             </select>
+            <span class="montant-box"${statut === 'Converti' ? '' : ' hidden'}>💰<input type="number" class="montant-input" data-record-id="${esc(r.id)}" value="${montant}" placeholder="Montant" min="0" inputmode="numeric">€</span>
           </td>
         </tr>`;
       });
@@ -1425,6 +1476,7 @@
         allRecords.sort((a, b) => new Date(b.fields["Heure d'appel"] || 0) - new Date(a.fields["Heure d'appel"] || 0));
 
         updateStats();
+        updateCA();
         renderNextCallout();
 
         // Cache/affiche les filtres selon qu'on a des données ou pas
@@ -1507,8 +1559,13 @@
         }
         sel.className = `status-sel ${statusCls(newStatut)}`;
 
+        // Affiche/masque le champ montant selon le statut
+        const mBox = row?.querySelector('.montant-box');
+        if (mBox) mBox.hidden = (newStatut !== 'Converti');
+
         // Mise à jour des stats KPI sans recharger
         updateStats();
+        updateCA();
         renderNextCallout();
 
         // Flash de confirmation
@@ -1526,6 +1583,32 @@
         setTimeout(() => sel.classList.remove('is-error'), 2000);
       } finally {
         sel.disabled = false;
+      }
+    });
+
+    // Sauvegarde du montant d'un lead converti
+    document.getElementById('tableContent').addEventListener('change', async e => {
+      const inp = e.target.closest('input.montant-input[data-record-id]');
+      if (!inp) return;
+      const recordId = inp.dataset.recordId;
+      const val = inp.value.trim();
+      inp.disabled = true;
+      try {
+        const res = await fetch(API_URL, {
+          method: 'PATCH',
+          headers: await apiHeaders(),
+          body: JSON.stringify({ id: recordId, montant: val === '' ? null : Number(val) }),
+        });
+        if (!res.ok) throw new Error('PATCH montant failed');
+        const rec = allRecords.find(r => r.id === recordId);
+        if (rec) rec.fields['Montant'] = val === '' ? undefined : Number(val);
+        updateCA();
+        inp.classList.add('is-saved'); setTimeout(() => inp.classList.remove('is-saved'), 1200);
+      } catch (err) {
+        console.error('PATCH montant échoué :', err);
+        inp.classList.add('is-error'); setTimeout(() => inp.classList.remove('is-error'), 2000);
+      } finally {
+        inp.disabled = false;
       }
     });
 
