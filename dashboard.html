@@ -1233,6 +1233,13 @@
       return iso && (Date.now() - new Date(iso).getTime()) < 86400000;
     }
 
+    // Appel passé aujourd'hui (jour calendaire), pas "il y a moins de 24h"
+    function isToday(iso) {
+      if (!iso) return false;
+      const d = new Date(iso), now = new Date();
+      return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }
+
     function truncateMsg(text, max = 90) {
       if (!text) return '<span style="opacity:.45;font-style:italic">En attente de réponse</span>';
       if (text.length <= max) return esc(text);
@@ -1333,7 +1340,7 @@
       const converted = missed.filter(r => statusOf(r) === 'Converti').length;
       const closed    = missed.filter(r => statusOf(r) === 'Sans suite').length;
       const rate      = total > 0 ? Math.round((converted / total) * 100) : 0;
-      const todayCount = missed.filter(r => isRecent(r.fields["Heure d'appel"])).length;
+      const todayCount = missed.filter(r => isToday(r.fields["Heure d'appel"])).length;
 
       // Taux de rappel = leads effectivement recontactés (Rappelé + Converti) / total
       const recalled    = called + converted;
@@ -1371,7 +1378,7 @@
       const sub     = document.getElementById('pageSub');
       const dateStr = sub.dataset.date || '';
       sub.textContent = todayCount > 0
-        ? `${dateStr} · ${todayCount} nouvel${todayCount > 1 ? 's' : ''} appel${todayCount > 1 ? 's' : ''} aujourd'hui`
+        ? `${dateStr} · ${todayCount} appel${todayCount > 1 ? 's' : ''} aujourd'hui`
         : dateStr;
     }
 
