@@ -324,9 +324,10 @@
     .td-msg { color: var(--text-muted); max-width: 300px; line-height: 1.5; }
     .td-msg.has-msg { color: var(--text); }
     .msg-toggle { display: none; align-items: center; gap: 0.3rem; background: none; border: none; color: var(--accent); font-weight: 600; font-size: 0.85rem; cursor: pointer; padding: 0.2rem 0; }
-    .msg-toggle:disabled { color: var(--text-muted); cursor: default; font-weight: 500; }
+    .msg-toggle--empty { color: var(--text-muted); cursor: default; font-weight: 500; }
     .msg-body { display: block; }
     .msg-body.has-msg { color: var(--text); }
+    .td-msg-empty { color: var(--text-muted); font-style: italic; }
 
     .badge {
       display: inline-flex; align-items: center; gap: 0.375rem;
@@ -481,19 +482,26 @@
       .nav-user { display: none; }
 
       /* Tableau → cartes empilées sur mobile */
-      .table-card table, .table-card tbody, .table-card tr, .table-card td { display: block; width: 100%; }
+      .table-card table, .table-card tbody { display: block; width: 100%; }
       .table-card thead { display: none; }
       .table-card tbody tr {
+        display: flex; flex-wrap: wrap; align-items: center;
         border: 1px solid var(--border); border-radius: var(--radius);
-        margin: 0.625rem 0.75rem; padding: 0.4rem 0.25rem 0.7rem;
+        margin: 0.625rem 0.75rem; padding: 0.7rem 0.9rem;
       }
-      .table-card tbody td { padding: 0.3rem 0.9rem; }
-      .table-card .td-num { font-size: 1.05rem; padding-top: 0.6rem; }
+      .table-card tbody td { display: block; padding: 0; border: none; }
+      .table-card .td-num    { order: 1; flex: 1 1 auto; min-width: 0; font-size: 1.05rem; }
+      .table-card .td-time   { order: 2; margin-left: auto; text-align: right; }
+      .table-card .td-action {
+        order: 3; flex-basis: 100%; margin-top: 0.6rem;
+        display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+      }
+      .table-card .td-action .status-sel { width: auto; min-width: 8.5rem; }
+      .table-card .td-msg    { order: 4; flex-basis: 100%; }
       /* Message replié par défaut, dépliable au tap */
       .table-card .msg-toggle { display: inline-flex; }
       .table-card .td-msg .msg-body { display: none; }
-      .table-card tr.expanded .td-msg .msg-body { display: block; margin-top: 0.4rem; }
-      .table-card .status-sel { width: 100%; }
+      .table-card tr.expanded .td-msg .msg-body { display: block; margin-top: 0.5rem; }
     }
 
     /* ── États de chargement / activation ── */
@@ -1353,9 +1361,12 @@
           : `<span class="td-time-abs">${esc(absolute)}</span>`;
 
         const rawMsg = f['Message prospect'] || '';
-        const msgCell = rawMsg
-          ? `<button type="button" class="msg-toggle" onclick="toggleMsg(this)">💬 Voir la demande</button><div class="msg-body has-msg">${truncateMsg(rawMsg)}</div>`
-          : `<button type="button" class="msg-toggle" disabled>Pas de message</button><div class="msg-body">—</div>`;
+        const msgBody = rawMsg
+          ? `<div class="msg-body has-msg">${truncateMsg(rawMsg)}</div>`
+          : `<div class="msg-body td-msg-empty">Pas de message</div>`;
+        const toggleEl = rawMsg
+          ? `<button type="button" class="msg-toggle" onclick="toggleMsg(this)">💬 Voir la demande</button>`
+          : `<span class="msg-toggle msg-toggle--empty">Pas de message</span>`;
 
         const statut = getStatus(r);
         const cls = statusCls(statut);
@@ -1363,8 +1374,9 @@
         rows += `<tr class="${statut === 'Sans suite' ? 'row-closed' : recent ? 'row-new' : ''}">
           <td class="td-num">${recent ? '<span class="badge-new-dot"></span>' : ''}${numCell}</td>
           <td class="td-time">${timeCell}</td>
-          <td class="td-msg">${msgCell}</td>
-          <td>
+          <td class="td-msg">${msgBody}</td>
+          <td class="td-action">
+            ${toggleEl}
             <select class="status-sel ${cls}" data-record-id="${esc(r.id)}">
               <option value="À rappeler" ${statut==='À rappeler'?'selected':''}>À rappeler</option>
               <option value="Rappelé"    ${statut==='Rappelé'   ?'selected':''}>Rappelé</option>
