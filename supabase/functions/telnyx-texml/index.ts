@@ -8,15 +8,11 @@
 //   4. Pas de réponse dans le délai → Telnyx coupe la jambe AVANT que la messagerie mobile
 //      ne réponde → callback "no-answer" → SMS auto au client
 //
-// Pourquoi le timeout court : si on laissait sonner trop longtemps, la messagerie du mobile
-// de l'artisan décrocherait et ferait un faux "answered" → pas de SMS. En coupant avant,
-// un statut "completed" signifie de façon fiable un décrochage HUMAIN.
-// (Alternative possible si besoin : AMD/answering machine detection — non retenu car moins
-//  déterministe et non validé.)
+// Stockage : Postgres (table public.calls). Migré depuis Airtable (2026-06-02).
 //
 // Routing par query param `step` :
 //   (aucun)         → appel entrant initial → <Dial timeout> vers le mobile artisan
-//   step=dialresult → callback fin de <Dial> : completed = répondu live (no SMS), sinon SMS
+//   step=dialresult → callback fin de <Dial> : completed = répondu live, sinon SMS
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -25,24 +21,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const AT_BASE = Deno.env.get('AIRTABLE_BASE') ?? 'apptXlbxzPEn7zYFD';
-const AT_TABLE = Deno.env.get('AIRTABLE_TABLE') ?? 'tblFhzjEIVLBcedY1';
 const FALLBACK_CLIENT_EMAIL = Deno.env.get('CLIENT_EMAIL') ?? 'template@yopmail.com';
 const FALLBACK_SMS_SENDER = Deno.env.get('BREVO_SENDER') ?? 'ReplyIt';
 const TALLY_FORM_URL = Deno.env.get('TALLY_FORM_URL') ?? 'https://tally.so/r/VLDjpa';
 
 // ⚠️ URL PUBLIQUE de cette fonction, construite depuis SUPABASE_URL (env fiable).
 // On NE PEUT PAS utiliser req.url : dans Supabase Edge Functions il contient l'URL
-// INTERNE (host non public), ce qui rend les callbacks Telnyx (whisper/action)
-// injoignables → "application error has occurred. Goodbye".
+// INTERNE (host non public), ce qui rend les callbacks Telnyx injoignables.
 const PUBLIC_BASE = `${Deno.env.get('SUPABASE_URL')}/functions/v1/telnyx-texml`;
 
 // Durée de sonnerie du mobile de l'artisan avant no-answer → SMS.
-// ⚠️ DOIT rester < timer messagerie du mobile de l'artisan, pour que Telnyx coupe la jambe
-// AVANT que la messagerie mobile ne réponde (sinon faux "answered" → pas de SMS).
+// ⚠️ DOIT rester < timer messagerie du mobile de l'artisan.
 const DIAL_TIMEOUT_SEC = 18;
 
+function supabaseAdmin() {
+  return createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SB_SERVICE_ROLE_KEY')!,
+  );
+}
+
 interface ClientProfile {
+  id: string | null;
   email: string;
   businessName: string | null;
   smsTemplate: string | null;
@@ -51,6 +51,7 @@ interface ClientProfile {
 
 async function getClientProfile(telnyxNumber: string | undefined): Promise<ClientProfile> {
   const fallback: ClientProfile = {
+    id: null,
     email: FALLBACK_CLIENT_EMAIL,
     businessName: null,
     smsTemplate: null,
@@ -58,18 +59,15 @@ async function getClientProfile(telnyxNumber: string | undefined): Promise<Clien
   };
   if (!telnyxNumber) return fallback;
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SB_SERVICE_ROLE_KEY')!,
-    );
-    const { data } = await supabase
+    const { data } = await supabaseAdmin()
       .from('profiles')
-      .select('email, business_name, sms_template, forward_to_phone')
+      .select('id, email, business_name, sms_template, forward_to_phone')
       .eq('telnyx_number', telnyxNumber)
       .eq('status', 'active')
       .maybeSingle();
     if (!data) return fallback;
     return {
+      id: data.id ?? null,
       email: data.email ?? FALLBACK_CLIENT_EMAIL,
       businessName: data.business_name,
       smsTemplate: data.sms_template,
@@ -102,60 +100,53 @@ function isFrenchPhone(phone: string): boolean {
   return false;
 }
 
+// Dédup "même prospect dans la dernière heure" (Postgres).
 async function isPhoneRecentlyProcessed(phone: string, clientEmail: string): Promise<boolean> {
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const formula = `AND({Numéro client}="${phone}", {Email client}="${clientEmail}", IS_AFTER({Heure d'appel}, "${oneHourAgo}"))`;
-  const url = `https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}?filterByFormula=${encodeURIComponent(formula)}&maxRecords=1`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${Deno.env.get('AIRTABLE_TOKEN')}` },
-  });
-  if (!res.ok) {
-    console.error('Airtable phone dedup check failed:', await res.text());
-    return false;
+  const { data, error } = await supabaseAdmin()
+    .from('calls')
+    .select('id')
+    .eq('phone', phone)
+    .eq('client_email', clientEmail)
+    .gt('occurred_at', oneHourAgo)
+    .limit(1);
+  if (error) {
+    console.error('Postgres dedup check failed:', error);
+    return false; // en cas d'erreur, on continue plutôt que de bloquer
   }
-  const data = await res.json();
-  return Array.isArray(data.records) && data.records.length > 0;
+  return Array.isArray(data) && data.length > 0;
 }
 
-// Upsert atomique par CallSid (catch les retries Telnyx). Retourne true si nouvelle ligne.
-// `type` ('Manqué' | 'Décroché') : optionnel. Si absent, on n'écrit pas le champ
-// (l'ancien comportement / les lignes sans Type sont traitées comme "Manqué" côté dashboard).
-async function upsertAirtableRecord(
-  phone: string,
-  occurredAt: string,
-  clientEmail: string,
-  callSid: string,
-  statut: string = 'À rappeler',
-  type?: string,
-): Promise<boolean> {
-  const fields: Record<string, unknown> = {
-    'Name': phone,
-    'Numéro client': phone,
-    "Heure d'appel": occurredAt,
-    'Email client': clientEmail,
-    'Call ID': callSid,
+// Upsert atomique par call_sid (catch les retries Telnyx). Retourne true si NOUVELLE ligne.
+// `ignoreDuplicates: true` → ON CONFLICT DO NOTHING ; .select() renvoie [] si c'était un doublon.
+async function upsertCall(opts: {
+  phone: string;
+  occurredAt: string;
+  clientEmail: string;
+  callSid: string;
+  userId: string | null;
+  statut?: string;
+  type?: string;
+}): Promise<boolean> {
+  const row: Record<string, unknown> = {
+    call_sid: opts.callSid,
+    phone: opts.phone,
+    occurred_at: opts.occurredAt,
+    client_email: opts.clientEmail,
+    user_id: opts.userId,
+    type: opts.type ?? 'Manqué',
   };
-  if (statut) fields['Statut'] = statut;   // statut vide ('') → appel décroché non encore qualifié
-  if (type) fields['Type'] = type;
+  if (opts.statut !== undefined) row.statut = opts.statut; // '' = décroché à qualifier
 
-  const res = await fetch(`https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${Deno.env.get('AIRTABLE_TOKEN')}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      performUpsert: { fieldsToMergeOn: ['Call ID'] },
-      records: [{ fields }],
-      typecast: true,
-    }),
-  });
-  if (!res.ok) {
-    console.error('Airtable upsert failed:', await res.text());
-    throw new Error('Airtable upsert failed');
+  const { data, error } = await supabaseAdmin()
+    .from('calls')
+    .upsert(row, { onConflict: 'call_sid', ignoreDuplicates: true })
+    .select('id');
+  if (error) {
+    console.error('Postgres upsert failed:', error);
+    throw new Error('Postgres upsert failed');
   }
-  const data = await res.json();
-  return Array.isArray(data.createdRecords) && data.createdRecords.length > 0;
+  return Array.isArray(data) && data.length > 0;
 }
 
 async function sendBrevoSMS(phone: string, profile: ClientProfile): Promise<void> {
@@ -174,42 +165,40 @@ async function sendBrevoSMS(phone: string, profile: ClientProfile): Promise<void
   }
 }
 
-// Traite un appel manqué : dédups (phone+heure puis CallSid atomique) → SMS + Airtable.
+// Traite un appel manqué : dédups (phone+heure puis call_sid atomique) → SMS + Postgres.
 async function handleMissedCall(
   fromPhone: string,
-  toNumber: string,
+  _toNumber: string,
   callSid: string,
   profile: ClientProfile,
 ): Promise<void> {
   if (!isFrenchPhone(fromPhone)) {
     console.log('Non-French number, skipping SMS:', fromPhone);
     try {
-      await upsertAirtableRecord(fromPhone, new Date().toISOString(), profile.email, callSid, 'Numéro non-FR');
-    } catch (e) { console.error('Airtable spam log failed:', e); }
+      await upsertCall({ phone: fromPhone, occurredAt: new Date().toISOString(), clientEmail: profile.email, callSid, userId: profile.id, statut: 'Numéro non-FR' });
+    } catch (e) { console.error('Spam log failed:', e); }
     return;
   }
   if (await isPhoneRecentlyProcessed(fromPhone, profile.email)) {
     console.log('Phone recently processed, skipping:', fromPhone);
     return;
   }
-  const isNewCall = await upsertAirtableRecord(fromPhone, new Date().toISOString(), profile.email, callSid);
+  const isNewCall = await upsertCall({ phone: fromPhone, occurredAt: new Date().toISOString(), clientEmail: profile.email, callSid, userId: profile.id });
   if (!isNewCall) {
-    console.log('Deduped on Call ID:', callSid);
+    console.log('Deduped on call_sid:', callSid);
     return;
   }
   await sendBrevoSMS(fromPhone, profile);
   console.log('Missed call handled, SMS sent:', fromPhone);
 }
 
-// Journalise un appel DÉCROCHÉ (conversation live). Pas de SMS, pas de statut funnel
-// (Statut vide = "à qualifier"). Type='Décroché' pour l'onglet dédié + le CA généré.
-// Dédup via upsert sur Call ID (catch les retries Telnyx).
+// Journalise un appel DÉCROCHÉ (conversation live). Pas de SMS, statut vide = "à qualifier".
 async function handleAnsweredCall(
   fromPhone: string,
   callSid: string,
-  clientEmail: string,
+  profile: ClientProfile,
 ): Promise<void> {
-  await upsertAirtableRecord(fromPhone, new Date().toISOString(), clientEmail, callSid, '', 'Décroché');
+  await upsertCall({ phone: fromPhone, occurredAt: new Date().toISOString(), clientEmail: profile.email, callSid, userId: profile.id, statut: '', type: 'Décroché' });
   console.log('Answered call logged:', fromPhone);
 }
 
@@ -240,9 +229,7 @@ Deno.serve(async (req) => {
 
     // ───────────────────────────────────────────────────────────────────────
     // STEP: dialresult — callback de fin de <Dial>.
-    // Le <Dial timeout> est volontairement COURT (< timer messagerie du mobile
-    // de l'artisan). Donc un "completed" = décrochage HUMAIN (la messagerie n'a
-    // pas eu le temps de répondre). Tout le reste = appel manqué → SMS.
+    // "completed" = décrochage HUMAIN (timeout court < messagerie). Sinon = manqué → SMS.
     // ───────────────────────────────────────────────────────────────────────
     if (step === 'dialresult') {
       const caller = url.searchParams.get('caller') ?? '';
@@ -258,7 +245,7 @@ Deno.serve(async (req) => {
         console.log('Answered live (human), no SMS:', cid);
         const profile = await getClientProfile(tn);
         try {
-          await handleAnsweredCall(caller, cid, profile.email);
+          await handleAnsweredCall(caller, cid, profile);
         } catch (e) { console.error('handleAnsweredCall failed:', e); }
         return xmlResponse('<Response><Hangup/></Response>');
       }
@@ -287,15 +274,8 @@ Deno.serve(async (req) => {
       return xmlResponse('<Response><Hangup/></Response>');
     }
 
-    // Modèle numéro dédié : on sonne le mobile de l'artisan. Timeout COURT (DIAL_TIMEOUT_SEC,
-    // < timer messagerie mobile) pour couper la jambe AVANT que sa messagerie ne réponde
-    // (sinon faux "answered" → pas de SMS). callerId = numéro Telnyx (qu'on possède).
-    //
-    // ⚠️ PAS de answerOnBridge : on décroche l'appel entrant immédiatement. Sinon, sur dial
-    // no-answer, on raccrocherait un appel jamais décroché → Telnyx renvoie "480 Temporarily
-    // Unavailable" → l'opérateur de l'appelant RE-TENTE en boucle (bug constaté). En décrochant
-    // d'abord, le hangup = BYE normal → aucun retry → pas de boucle. L'appelant entend la
-    // sonnerie (ringback généré par Telnyx) pendant le dial.
+    // Modèle numéro dédié : on sonne le mobile de l'artisan. Timeout COURT (< messagerie).
+    // ⚠️ PAS de answerOnBridge : on décroche l'appel entrant immédiatement (sinon 480 → boucle).
     const dialAction = `${base}?step=dialresult&caller=${enc(bodyFrom)}&tn=${enc(bodyTo)}&cid=${enc(bodyCallSid)}`;
     const xml = `<Response>
   <Dial timeout="${DIAL_TIMEOUT_SEC}" action="${esc(dialAction)}" method="POST" callerId="${esc(bodyTo)}">${esc(profile.forwardToPhone)}</Dial>

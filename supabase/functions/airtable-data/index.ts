@@ -1,3 +1,9 @@
+// Données du dashboard — lit/écrit la table Postgres public.calls.
+// (Migré depuis Airtable 2026-06-02.)
+//
+// La réponse GET est mappée au MÊME format que l'ancienne API Airtable
+// ({ records: [{ id, fields: {...} }] }) → le dashboard reste inchangé.
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -6,9 +12,6 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
 };
 
-const AT_BASE = Deno.env.get('AIRTABLE_BASE') ?? 'apptXlbxzPEn7zYFD';
-const AT_TABLE = Deno.env.get('AIRTABLE_TABLE') ?? 'tblFhzjEIVLBcedY1';
-
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -16,104 +19,105 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function admin() {
+  return createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SB_SERVICE_ROLE_KEY')!,
+  );
+}
+
 async function getUser(req: Request) {
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) return null;
-
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_ANON_KEY')!,
     { global: { headers: { Authorization: authHeader } } },
   );
-
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return null;
   return user;
 }
 
-async function hasActiveSubscription(userId: string): Promise<boolean> {
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SB_SERVICE_ROLE_KEY')!,
-  );
-  const { data } = await supabase
-    .from('profiles')
-    .select('status')
-    .eq('id', userId)
-    .single();
+async function isActive(userId: string): Promise<boolean> {
+  const { data } = await admin().from('profiles').select('status').eq('id', userId).single();
   return data?.status === 'active';
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+// Mappe une ligne Postgres → format "record Airtable" attendu par le dashboard.
+function toRecord(r: Record<string, unknown>) {
+  return {
+    id: r.id,
+    fields: {
+      'Name': r.phone,
+      'Numéro client': r.phone,
+      "Heure d'appel": r.occurred_at,
+      'Message prospect': r.message ?? '',
+      'Statut': r.statut ?? '',
+      'Montant': r.montant,
+      'Type': r.type ?? 'Manqué',
+      'Rappelé le': r.rappele_le,
+      'Email client': r.client_email,
+      'Call ID': r.call_sid,
+    },
+  };
+}
 
-  const token = Deno.env.get('AIRTABLE_TOKEN');
-  if (!token) {
-    return json({ error: 'AIRTABLE_TOKEN not configured' }, 500);
-  }
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   const user = await getUser(req);
   if (!user) return json({ error: 'Unauthorized' }, 401);
 
-  const active = await hasActiveSubscription(user.id);
-  if (!active) return json({ error: 'Subscription required' }, 403);
+  if (!(await isActive(user.id))) return json({ error: 'Subscription required' }, 403);
 
-  const clientEmail = user.email;
-
-  const atHeaders = {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
+  const sb = admin();
 
   if (req.method === 'GET') {
-    const url =
-      `https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}?sort%5B0%5D%5Bfield%5D=Heure%20d%27appel&sort%5B0%5D%5Bdirection%5D=desc` +
-      `&filterByFormula=${encodeURIComponent(`{Email client}="${clientEmail}"`)}` ;
-
-    const res = await fetch(url, { headers: atHeaders });
-    const data = await res.json();
-    if (!res.ok) return json(data, res.status);
-    return json(data);
+    const { data, error } = await sb
+      .from('calls')
+      .select('id, call_sid, phone, occurred_at, message, statut, montant, type, rappele_le, client_email')
+      .eq('user_id', user.id)
+      .order('occurred_at', { ascending: false });
+    if (error) return json({ error: error.message }, 500);
+    return json({ records: (data ?? []).map(toRecord) });
   }
 
   if (req.method === 'PATCH') {
     const { id, statut, montant, rappeleLe } = await req.json();
     if (!id) return json({ error: 'Missing id' }, 400);
 
-    const fields: Record<string, unknown> = {};
+    const update: Record<string, unknown> = {};
     if (typeof statut === 'string' && statut.length > 0) {
-      fields.Statut = statut.normalize('NFC');
+      update.statut = statut.normalize('NFC');
     }
     // Horodatage du 1er rappel (KPI "délai moyen de rappel"). Date ISO valide uniquement.
     if (typeof rappeleLe === 'string' && rappeleLe.length > 0) {
       const d = new Date(rappeleLe);
-      if (!isNaN(d.getTime())) fields['Rappelé le'] = d.toISOString();
+      if (!isNaN(d.getTime())) update.rappele_le = d.toISOString();
     }
     if (montant !== undefined) {
-      // montant: nombre >= 0, ou null/'' pour vider le champ
       if (montant === null || montant === '') {
-        fields.Montant = null;
+        update.montant = null;
       } else {
         const n = Number(montant);
         if (!Number.isFinite(n) || n < 0) return json({ error: 'Invalid montant' }, 400);
-        fields.Montant = n;
+        update.montant = n;
       }
     }
-    if (Object.keys(fields).length === 0) return json({ error: 'Nothing to update' }, 400);
+    if (Object.keys(update).length === 0) return json({ error: 'Nothing to update' }, 400);
 
-    const res = await fetch(
-      `https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}/${id}`,
-      {
-        method: 'PATCH',
-        headers: atHeaders,
-        body: JSON.stringify({ fields, typecast: true }),
-      },
-    );
-    const data = await res.json();
-    if (!res.ok) return json(data, res.status);
-    return json(data);
+    // Sécurité : on ne met à jour QUE les lignes appartenant à l'utilisateur authentifié.
+    const { data, error } = await sb
+      .from('calls')
+      .update(update)
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select('id')
+      .maybeSingle();
+    if (error) return json({ error: error.message }, 500);
+    if (!data) return json({ error: 'Not found' }, 404);
+    return json({ success: true, id: data.id });
   }
 
   return json({ error: 'Method not allowed' }, 405);
