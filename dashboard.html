@@ -620,6 +620,35 @@
     }
     .success-banner > span { flex: 1; }
     .success-banner button { background: none; border: none; color: #15803d; font-size: 1.25rem; line-height: 1; padding: 0 0.25rem; cursor: pointer; }
+
+    /* ── Popup de bienvenue (onboarding) ── */
+    .welcome-intro { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .welcome-steps { list-style: none; display: flex; flex-direction: column; gap: 0.85rem; margin: 0; padding: 0; }
+    .welcome-steps li { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.9rem; color: var(--text); line-height: 1.45; }
+    .ws-num { flex-shrink: 0; width: 1.6rem; height: 1.6rem; border-radius: 9999px; background: var(--accent); color: #fff; font-weight: 800; font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; margin-top: 0.05rem; }
+    .welcome-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border); background: var(--bg-elevated); flex-wrap: wrap; position: sticky; bottom: 0; }
+    .welcome-dismiss { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; }
+    .welcome-dismiss input { width: 1rem; height: 1rem; accent-color: var(--accent); cursor: pointer; }
+    .welcome-actions { display: flex; gap: 0.6rem; }
+    .btn-tour { padding: 0.55rem 1rem; font-size: 0.875rem; font-weight: 600; color: var(--accent); background: var(--bg-card); border: 1px solid var(--accent); border-radius: 0.6rem; cursor: pointer; }
+    .btn-tour:hover { background: var(--accent-subtle); }
+    .btn-welcome-ok { padding: 0.55rem 1.1rem; font-size: 0.875rem; font-weight: 700; color: #fff; background: var(--accent); border: none; border-radius: 0.6rem; cursor: pointer; }
+    .btn-welcome-ok:hover { background: var(--accent-hover); }
+
+    /* ── Tour interactif (visite guidée) ── */
+    .tour-blocker { position: fixed; inset: 0; z-index: 300; background: transparent; }
+    .tour-highlight { position: fixed; z-index: 301; border-radius: 0.6rem; box-shadow: 0 0 0 3px var(--accent), 0 0 0 9999px rgba(15,23,42,0.55); pointer-events: none; transition: top 250ms ease, left 250ms ease, width 250ms ease, height 250ms ease; }
+    .tour-tip { position: fixed; z-index: 302; width: min(20rem, calc(100vw - 2rem)); background: var(--bg-card); border: 1px solid var(--border); border-radius: 0.75rem; box-shadow: var(--shadow-lg); padding: 1rem 1.1rem; transition: top 200ms ease, left 200ms ease; }
+    .tour-tip h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .tour-tip p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+    .tour-tip-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.9rem; }
+    .tour-count { font-size: 0.75rem; color: var(--text-light); font-weight: 600; }
+    .tour-btns { display: flex; gap: 0.4rem; }
+    .tour-btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted); }
+    .tour-btn:hover { border-color: var(--border-hover); color: var(--text); }
+    .tour-btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .tour-btn-primary:hover { background: var(--accent-hover); }
+    .tour-skip { position: fixed; z-index: 302; top: 1rem; right: 1rem; font-size: 0.8rem; font-weight: 600; color: #fff; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.3); border-radius: 9999px; padding: 0.35rem 0.8rem; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -873,6 +902,33 @@
         </div>
       </main>
     </div>
+
+  <!-- MODAL BIENVENUE (onboarding) -->
+  <div id="welcome-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeWelcome()">
+    <div class="modal-card" style="max-width:34rem">
+      <div class="modal-header">
+        <h2>👋 Bienvenue sur ReplyIt</h2>
+        <button class="modal-close" onclick="closeWelcome()" aria-label="Fermer">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="welcome-intro">Voici comment démarrer en quelques minutes :</p>
+        <ol class="welcome-steps">
+          <li><span class="ws-num">1</span><div><strong>Votre numéro ReplyIt est en cours d'attribution.</strong> On vous prévient par email dès qu'il est prêt (sous quelques heures).</div></li>
+          <li><span class="ws-num">2</span><div><strong>Enregistrez-le dans vos contacts</strong> dès réception.</div></li>
+          <li><span class="ws-num">3</span><div><strong>Testez-le</strong> : appelez votre numéro ReplyIt, laissez sonner ~18s sans décrocher → vous recevez le SMS automatique.</div></li>
+          <li><span class="ws-num">4</span><div><strong>Diffusez-le</strong> là où arrivent vos nouveaux prospects : fiche Google, cartes de visite, site, devis.</div></li>
+          <li><span class="ws-num">5</span><div><strong>Personnalisez votre SMS</strong> dans Paramètres (optionnel).</div></li>
+        </ol>
+      </div>
+      <div class="welcome-footer">
+        <label class="welcome-dismiss"><input type="checkbox" id="welcomeDismiss"> Ne plus afficher</label>
+        <div class="welcome-actions">
+          <button class="btn-tour" onclick="closeWelcome(); startTour();">Visiter le dashboard →</button>
+          <button class="btn-welcome-ok" onclick="closeWelcome()">C'est parti</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL PARAMÈTRES -->
   <div id="settings-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeSettings()">
@@ -1305,6 +1361,92 @@
       }
       showState('app');
       loadData();
+      maybeShowWelcome();
+    }
+
+    // ── Onboarding : popup de bienvenue + tour interactif ──
+    function welcomeKey() { return 'replyit_welcome_dismissed_' + (currentUser?.id || 'anon'); }
+    function maybeShowWelcome() {
+      try { if (localStorage.getItem(welcomeKey()) === '1') return; } catch (e) {}
+      const m = document.getElementById('welcome-modal');
+      if (m) m.style.display = 'flex';
+    }
+    function closeWelcome() {
+      const d = document.getElementById('welcomeDismiss');
+      if (d && d.checked) { try { localStorage.setItem(welcomeKey(), '1'); } catch (e) {} }
+      const m = document.getElementById('welcome-modal');
+      if (m) m.style.display = 'none';
+    }
+
+    // Tour interactif (pur JS/CSS, sans dépendance)
+    const TOUR_STEPS = [
+      { sel: '#ca-banner',    t: '💶 CA récupéré',          d: "Le chiffre d'affaires que ReplyIt vous a fait récupérer — votre preuve de valeur, en direct." },
+      { sel: '.stats-row',    t: '📊 Vos indicateurs',       d: "Appels manqués, taux de rappel, convertis, taux de conversion et délai moyen de rappel." },
+      { sel: '.table-tabs',   t: '📞 Manqués & décrochés',   d: "Basculez entre vos appels manqués (à rappeler) et vos appels décrochés." },
+      { sel: '#filterPills',  t: '🗂️ Filtres',               d: "Filtrez vos leads par statut : à rappeler, rappelé, converti, sans suite." },
+      { sel: '#tableContent', t: '✅ Qualifiez vos leads',   d: "Changez le statut d'un appel, et notez le montant quand un lead devient client." },
+      { sel: '.btn-settings', t: '⚙️ Paramètres',            d: "Retrouvez votre numéro ReplyIt et personnalisez votre SMS automatique." },
+    ];
+    let _tourSteps = [], _tourIdx = 0, _tourEls = null;
+
+    function startTour() {
+      _tourSteps = TOUR_STEPS.filter(s => { const el = document.querySelector(s.sel); return el && el.offsetParent !== null; });
+      if (!_tourSteps.length) return;
+      _tourIdx = 0;
+      if (!_tourEls) {
+        const blocker = document.createElement('div'); blocker.className = 'tour-blocker';
+        const hl = document.createElement('div'); hl.className = 'tour-highlight';
+        const tip = document.createElement('div'); tip.className = 'tour-tip';
+        const skip = document.createElement('button'); skip.className = 'tour-skip'; skip.textContent = 'Passer la visite ✕';
+        skip.onclick = endTour;
+        _tourEls = { blocker, hl, tip, skip };
+      }
+      const { blocker, hl, tip, skip } = _tourEls;
+      [blocker, hl, tip, skip].forEach(el => document.body.appendChild(el));
+      window.addEventListener('resize', renderTourStep);
+      renderTourStep();
+    }
+    function endTour() {
+      if (!_tourEls) return;
+      Object.values(_tourEls).forEach(el => el.remove());
+      window.removeEventListener('resize', renderTourStep);
+    }
+    function tourNext() { if (_tourIdx < _tourSteps.length - 1) { _tourIdx++; renderTourStep(); } else endTour(); }
+    function tourPrev() { if (_tourIdx > 0) { _tourIdx--; renderTourStep(); } }
+    function renderTourStep() {
+      const step = _tourSteps[_tourIdx]; if (!step) return;
+      const el = document.querySelector(step.sel); if (!el) { tourNext(); return; }
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Laisse le scroll se faire avant de mesurer
+      setTimeout(() => {
+        const r = el.getBoundingClientRect();
+        const pad = 6;
+        const { hl, tip } = _tourEls;
+        hl.style.top = (r.top - pad) + 'px';
+        hl.style.left = (r.left - pad) + 'px';
+        hl.style.width = (r.width + pad * 2) + 'px';
+        hl.style.height = (r.height + pad * 2) + 'px';
+        const isLast = _tourIdx === _tourSteps.length - 1;
+        tip.innerHTML = `
+          <h4>${step.t}</h4>
+          <p>${step.d}</p>
+          <div class="tour-tip-foot">
+            <span class="tour-count">${_tourIdx + 1} / ${_tourSteps.length}</span>
+            <div class="tour-btns">
+              ${_tourIdx > 0 ? '<button class="tour-btn" onclick="tourPrev()">Précédent</button>' : ''}
+              <button class="tour-btn tour-btn-primary" onclick="tourNext()">${isLast ? 'Terminer' : 'Suivant'}</button>
+            </div>
+          </div>`;
+        // Place le tooltip sous l'élément, sinon au-dessus, en restant dans l'écran
+        const tipRect = tip.getBoundingClientRect();
+        const vh = window.innerHeight, vw = window.innerWidth;
+        let top = r.bottom + 12;
+        if (top + tipRect.height > vh - 12) top = Math.max(12, r.top - tipRect.height - 12);
+        let left = r.left + r.width / 2 - tipRect.width / 2;
+        left = Math.max(12, Math.min(left, vw - tipRect.width - 12));
+        tip.style.top = top + 'px';
+        tip.style.left = left + 'px';
+      }, 300);
     }
 
     async function handleLogout() {
