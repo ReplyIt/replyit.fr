@@ -118,13 +118,26 @@ async function isPhoneRecentlyProcessed(phone: string, clientEmail: string): Pro
 }
 
 // Upsert atomique par CallSid (catch les retries Telnyx). Retourne true si nouvelle ligne.
+// `type` ('Manqué' | 'Décroché') : optionnel. Si absent, on n'écrit pas le champ
+// (l'ancien comportement / les lignes sans Type sont traitées comme "Manqué" côté dashboard).
 async function upsertAirtableRecord(
   phone: string,
   occurredAt: string,
   clientEmail: string,
   callSid: string,
   statut: string = 'À rappeler',
+  type?: string,
 ): Promise<boolean> {
+  const fields: Record<string, unknown> = {
+    'Name': phone,
+    'Numéro client': phone,
+    "Heure d'appel": occurredAt,
+    'Email client': clientEmail,
+    'Call ID': callSid,
+  };
+  if (statut) fields['Statut'] = statut;   // statut vide ('') → appel décroché non encore qualifié
+  if (type) fields['Type'] = type;
+
   const res = await fetch(`https://api.airtable.com/v0/${AT_BASE}/${AT_TABLE}`, {
     method: 'PATCH',
     headers: {
@@ -133,16 +146,7 @@ async function upsertAirtableRecord(
     },
     body: JSON.stringify({
       performUpsert: { fieldsToMergeOn: ['Call ID'] },
-      records: [{
-        fields: {
-          'Name': phone,
-          'Numéro client': phone,
-          "Heure d'appel": occurredAt,
-          'Statut': statut,
-          'Email client': clientEmail,
-          'Call ID': callSid,
-        },
-      }],
+      records: [{ fields }],
       typecast: true,
     }),
   });
@@ -197,6 +201,18 @@ async function handleMissedCall(
   console.log('Missed call handled, SMS sent:', fromPhone);
 }
 
+// Journalise un appel DÉCROCHÉ (conversation live). Pas de SMS, pas de statut funnel
+// (Statut vide = "à qualifier"). Type='Décroché' pour l'onglet dédié + le CA généré.
+// Dédup via upsert sur Call ID (catch les retries Telnyx).
+async function handleAnsweredCall(
+  fromPhone: string,
+  callSid: string,
+  clientEmail: string,
+): Promise<void> {
+  await upsertAirtableRecord(fromPhone, new Date().toISOString(), clientEmail, callSid, '', 'Décroché');
+  console.log('Answered call logged:', fromPhone);
+}
+
 function xmlResponse(xml: string): Response {
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n${xml}`, {
     headers: { 'Content-Type': 'application/xml', ...corsHeaders },
@@ -236,10 +252,14 @@ Deno.serve(async (req) => {
       const dialCallDuration = formData.get('DialCallDuration')?.toString() ?? '';
       console.log('Dial result:', { cid, dialCallStatus, dialCallDuration });
 
-      // completed = l'artisan a décroché en live → aucun SMS, pas de ligne Airtable
-      // (le dashboard ne liste QUE les appels manqués à rappeler).
+      // completed = l'artisan a décroché en live → aucun SMS, mais on journalise l'appel
+      // (Type='Décroché') pour l'onglet "Appels décrochés" + le suivi du CA généré.
       if (dialCallStatus === 'completed') {
         console.log('Answered live (human), no SMS:', cid);
+        const profile = await getClientProfile(tn);
+        try {
+          await handleAnsweredCall(caller, cid, profile.email);
+        } catch (e) { console.error('handleAnsweredCall failed:', e); }
         return xmlResponse('<Response><Hangup/></Response>');
       }
 

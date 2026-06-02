@@ -306,6 +306,17 @@
     .ca-banner-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; margin-top: 0.25rem; font-size: 1rem; }
     .ca-banner-figures strong { font-size: 1.5rem; font-weight: 800; }
     .ca-banner-sep { opacity: 0.5; }
+    .ca-banner-genere { margin-top: 0.55rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.25); font-size: 0.85rem; }
+    .ca-banner-genere strong { font-weight: 800; }
+    .ca-banner-genere-hint { opacity: 0.8; font-size: 0.78rem; margin-left: 0.35rem; }
+
+    /* Onglets Appels manqués / décrochés */
+    .table-tabs { display: flex; gap: 0.25rem; padding: 0.5rem 1.25rem 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
+    .table-tab { display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; padding: 0.7rem 0.9rem; border: none; background: none; font: inherit; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 150ms; }
+    .table-tab:hover { color: var(--text); }
+    .table-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .table-tab .tab-count { font-size: 0.75rem; font-weight: 700; background: var(--accent-subtle); color: var(--accent); border-radius: 999px; padding: 0.05rem 0.5rem; }
+    .table-tab:not(.active) .tab-count { background: var(--border); color: var(--text-muted); }
 
     /* Montant des leads convertis */
     .montant-box { display: inline-flex; align-items: center; gap: 0.2rem; font-weight: 700; color: var(--success); margin-left: 0.5rem; }
@@ -732,6 +743,10 @@
               <span class="ca-banner-sep">·</span>
               <span><strong id="caTotal">0 €</strong> au total</span>
             </div>
+            <div class="ca-banner-genere" id="ca-genere-line" style="display:none">
+              CA généré total : <strong id="caGenereTotal">0 €</strong>
+              <span class="ca-banner-genere-hint">récupéré + appels décrochés</span>
+            </div>
           </div>
         </div>
 
@@ -787,8 +802,12 @@
         <div class="next-compact next-compact--mobile" id="next-compact-mobile"></div>
 
         <div class="table-card">
+          <div class="table-tabs">
+            <button class="table-tab active" data-tab="missed" onclick="setTab('missed')">📵 Appels manqués <span class="tab-count" id="tabCountMissed">0</span></button>
+            <button class="table-tab" data-tab="answered" onclick="setTab('answered')">📞 Appels décrochés <span class="tab-count" id="tabCountAnswered">0</span></button>
+          </div>
           <div class="table-head">
-            <span class="table-head-title">Historique des appels <span class="table-head-count" id="tableCount">0</span></span>
+            <span class="table-head-title"><span id="tableHeadLabel">Historique des appels</span> <span class="table-head-count" id="tableCount">0</span></span>
             <div class="next-compact next-compact--desktop" id="next-compact"></div>
             <button class="btn-refresh" onclick="loadData()">↻ <span class="btn-refresh-text">Actualiser</span></button>
           </div>
@@ -1263,21 +1282,43 @@
       renderTable();
     }
 
+    // ── Onglets : appels manqués (funnel leads) vs appels décrochés (journal) ──
+    let currentTab = 'missed';
+    const isAnswered      = r => (r.fields['Type'] || '') === 'Décroché';
+    const missedRecords   = () => allRecords.filter(r => !isAnswered(r));
+    const answeredRecords = () => allRecords.filter(r =>  isAnswered(r));
+    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.table-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      // Filtres de statut + "Prochain à rappeler" : pertinents uniquement pour les appels manqués
+      const pills = document.getElementById('filterPills');
+      if (pills) pills.style.display = (tab === 'missed' && missedRecords().length > 0) ? 'flex' : 'none';
+      renderNextCallout();   // se masque tout seul quand l'onglet n'est pas "missed"
+      renderTable();
+    }
+
     function updateStats() {
-      const total     = allRecords.length;
-      const replies   = allRecords.filter(r => r.fields['Message prospect']?.trim()).length;
+      const missed    = missedRecords();
+      const total     = missed.length;
+      const replies   = missed.filter(r => r.fields['Message prospect']?.trim()).length;
       const statusOf  = r => {
         const s = r.fields['Statut'];
         if (s === 'Nouveau') return 'À rappeler';
         if (s === 'Fermé')   return 'Sans suite';
         return s || 'À rappeler';
       };
-      const toCall    = allRecords.filter(r => statusOf(r) === 'À rappeler').length;
-      const called    = allRecords.filter(r => statusOf(r) === 'Rappelé').length;
-      const converted = allRecords.filter(r => statusOf(r) === 'Converti').length;
-      const closed    = allRecords.filter(r => statusOf(r) === 'Sans suite').length;
+      const toCall    = missed.filter(r => statusOf(r) === 'À rappeler').length;
+      const called    = missed.filter(r => statusOf(r) === 'Rappelé').length;
+      const converted = missed.filter(r => statusOf(r) === 'Converti').length;
+      const closed    = missed.filter(r => statusOf(r) === 'Sans suite').length;
       const rate      = total > 0 ? Math.round((converted / total) * 100) : 0;
-      const todayCount = allRecords.filter(r => isRecent(r.fields["Heure d'appel"])).length;
+      const todayCount = missed.filter(r => isRecent(r.fields["Heure d'appel"])).length;
+
+      // Compteurs des onglets
+      setText('tabCountMissed', total);
+      setText('tabCountAnswered', answeredRecords().length);
 
       document.getElementById('statTotal').textContent   = total;
       document.getElementById('statReplies').textContent = replies;
@@ -1312,7 +1353,10 @@
         document.getElementById('next-compact'),
         document.getElementById('next-compact-mobile'),
       ];
-      const toCall = allRecords.filter(r => getStatus(r) === 'À rappeler');
+      // "Prochain à rappeler" ne concerne que les appels manqués
+      const toCall = currentTab === 'missed'
+        ? missedRecords().filter(r => getStatus(r) === 'À rappeler')
+        : [];
       if (toCall.length === 0) {
         slots.forEach(s => { if (s) { s.classList.remove('is-active'); s.innerHTML = ''; } });
         return;
@@ -1368,35 +1412,67 @@
       if (tr) tr.classList.toggle('expanded');
     }
 
-    // 💰 Calcule le CA récupéré (somme des montants des leads "Converti") : mois en cours + total
+    // 💰 CA récupéré = appels MANQUÉS convertis (le chiffre anti-churn : l'argent sauvé).
+    //    CA généré total = récupéré + deals sur appels DÉCROCHÉS.
     function updateCA() {
       const now = new Date();
       const m = now.getMonth(), y = now.getFullYear();
-      let month = 0, total = 0;
+      let recupMonth = 0, recupTotal = 0, genereTotal = 0;
       allRecords.forEach(r => {
         if (getStatus(r) !== 'Converti') return;
         const montant = Number(r.fields['Montant']) || 0;
         if (montant <= 0) return;
-        total += montant;
-        const iso = r.fields["Heure d'appel"];
-        if (iso) { const d = new Date(iso); if (d.getMonth() === m && d.getFullYear() === y) month += montant; }
+        genereTotal += montant;                 // tout deal converti (manqué OU décroché)
+        if (!isAnswered(r)) {                    // CA récupéré = appels manqués uniquement
+          recupTotal += montant;
+          const iso = r.fields["Heure d'appel"];
+          if (iso) { const d = new Date(iso); if (d.getMonth() === m && d.getFullYear() === y) recupMonth += montant; }
+        }
       });
       const fmt = n => n.toLocaleString('fr-FR') + ' €';
-      const elM = document.getElementById('caMonth'); if (elM) elM.textContent = fmt(month);
-      const elT = document.getElementById('caTotal'); if (elT) elT.textContent = fmt(total);
+      setText('caMonth', fmt(recupMonth));
+      setText('caTotal', fmt(recupTotal));
+      setText('caGenereTotal', fmt(genereTotal));
       const banner = document.getElementById('ca-banner');
       if (banner) banner.style.display = allRecords.length > 0 ? 'flex' : 'none';
+      // La ligne "CA généré total" n'apparaît que s'il y a des deals sur appels décrochés
+      const genereLine = document.getElementById('ca-genere-line');
+      if (genereLine) genereLine.style.display = genereTotal > recupTotal ? '' : 'none';
     }
 
     function renderTable() {
+      if (currentTab === 'answered') renderAnsweredTable();
+      else renderMissedTable();
+    }
+
+    const ONBOARDING_EMPTY = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <div class="empty-title">Aucun appel manqué pour l'instant</div>
+        <div class="empty-sub">Dès qu'un prospect appelle sans réponse, il apparaîtra ici automatiquement.</div>
+        <div class="empty-cta">
+          <div class="empty-cta-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Comment ça marche ?
+          </div>
+          <div>Diffusez votre <strong>numéro ReplyIt</strong> auprès de vos clients (cartes, site, Google, devis). Vos appels sonnent sur votre mobile ; si vous ne répondez pas, le client reçoit un SMS et apparaît ici.</div>
+          <div class="empty-cta-hint">Votre numéro ReplyIt est visible dans <strong>Paramètres → Votre numéro ReplyIt</strong>.</div>
+        </div>
+      </div>`;
+
+    // ── Onglet "Appels manqués" (funnel leads) ──────────────────────────────
+    function renderMissedTable() {
+      const recs = missedRecords();
       const filtered = currentFilter === 'all'
-        ? allRecords
-        : allRecords.filter(r => getStatus(r) === currentFilter);
+        ? recs
+        : recs.filter(r => getStatus(r) === currentFilter);
 
       document.getElementById('tableCount').textContent = filtered.length;
 
-      if (allRecords.length === 0) {
-        // Empty state global — affiché par loadData()
+      if (recs.length === 0) {
+        document.getElementById('tableContent').innerHTML = ONBOARDING_EMPTY;
         return;
       }
 
@@ -1468,6 +1544,68 @@
         <div class="table-foot"><span class="live-dot"></span>Mis à jour à ${now}</div>`;
     }
 
+    // ── Onglet "Appels décrochés" (journal, statut réduit Converti/Sans suite) ──
+    function renderAnsweredTable() {
+      const recs = answeredRecords();
+      document.getElementById('tableCount').textContent = recs.length;
+
+      if (recs.length === 0) {
+        document.getElementById('tableContent').innerHTML = `
+          <div class="empty-state" style="padding:3rem 2rem;">
+            <div class="empty-icon" style="font-size:2rem;">📞</div>
+            <div class="empty-title">Aucun appel décroché enregistré</div>
+            <div class="empty-sub">Les appels que vous décrochez via votre numéro ReplyIt apparaissent ici. Marquez ceux qui deviennent des clients (« Converti » + montant) pour suivre votre CA généré.</div>
+          </div>`;
+        return;
+      }
+
+      let rows = '';
+      recs.forEach(r => {
+        const f      = r.fields;
+        const rawNum = f['Numéro client'] || f['Name'] || '';
+        const fmtNum = formatPhone(rawNum);
+        const numEsc = esc(rawNum);
+        const numCell = rawNum ? `<a href="tel:${numEsc}" title="Appeler ${fmtNum}">${esc(fmtNum)}</a>` : '—';
+
+        const iso      = f["Heure d'appel"];
+        const relative = iso ? fmtRelative(iso) : null;
+        const absolute = iso ? fmtDate(iso) : '—';
+        const recent   = isRecent(iso);
+        const timeCell = relative
+          ? `<div class="td-time-wrap"><span class="td-time-relative">${esc(relative)}</span><span class="td-time-abs">${esc(absolute)}</span></div>`
+          : `<span class="td-time-abs">${esc(absolute)}</span>`;
+
+        const statut  = f['Statut'] || '';   // '' = à qualifier
+        const cls     = statut ? statusCls(statut) : '';
+        const montant = (f['Montant'] !== undefined && f['Montant'] !== null) ? f['Montant'] : '';
+
+        rows += `<tr class="${statut === 'Sans suite' ? 'row-closed' : recent ? 'row-new' : ''}">
+          <td class="td-num">${recent ? '<span class="badge-new-dot"></span>' : ''}${numCell}</td>
+          <td class="td-time">${timeCell}</td>
+          <td class="td-action">
+            <select class="status-sel ${cls}" data-record-id="${esc(r.id)}">
+              <option value="" disabled ${statut===''?'selected':''}>À qualifier…</option>
+              <option value="Converti"   ${statut==='Converti'  ?'selected':''}>Converti</option>
+              <option value="Sans suite" ${statut==='Sans suite'?'selected':''}>Sans suite</option>
+            </select>
+            <span class="montant-box"${statut === 'Converti' ? '' : ' hidden'}>💰<input type="number" class="montant-input" data-record-id="${esc(r.id)}" value="${montant}" placeholder="Montant" min="0" inputmode="numeric">€</span>
+          </td>
+        </tr>`;
+      });
+
+      const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('tableContent').innerHTML = `
+        <table>
+          <thead><tr>
+            <th>Numéro</th>
+            <th>Heure de l'appel</th>
+            <th>Statut</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="table-foot"><span class="live-dot"></span>Mis à jour à ${now}</div>`;
+    }
+
     async function loadData() {
       const btn = document.querySelector('.btn-refresh');
       if (btn) { btn.disabled = true; btn.innerHTML = '↻ <span class="btn-refresh-text">Actualisation…</span>'; }
@@ -1486,28 +1624,10 @@
         updateCA();
         renderNextCallout();
 
-        // Cache/affiche les filtres selon qu'on a des données ou pas
-        document.getElementById('filterPills').style.display = allRecords.length === 0 ? 'none' : 'flex';
-
-        if (allRecords.length === 0) {
-          document.getElementById('tableContent').innerHTML = `
-            <div class="empty-state">
-              <div class="empty-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              </div>
-              <div class="empty-title">Aucun appel manqué pour l'instant</div>
-              <div class="empty-sub">Dès qu'un prospect appelle sans réponse, il apparaîtra ici automatiquement.</div>
-              <div class="empty-cta">
-                <div class="empty-cta-title">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  Comment ça marche ?
-                </div>
-                <div>Diffusez votre <strong>numéro ReplyIt</strong> auprès de vos clients (cartes, site, Google, devis). Vos appels sonnent sur votre mobile ; si vous ne répondez pas, le client reçoit un SMS et apparaît ici.</div>
-                <div class="empty-cta-hint">Votre numéro ReplyIt est visible dans <strong>Paramètres → Votre numéro ReplyIt</strong>.</div>
-              </div>
-            </div>`;
-          return;
-        }
+        // Filtres visibles uniquement sur l'onglet "manqués" avec des données
+        // (les empties par onglet sont gérés dans renderTable)
+        document.getElementById('filterPills').style.display =
+          (currentTab === 'missed' && missedRecords().length > 0) ? 'flex' : 'none';
 
         renderTable();
 
@@ -1582,9 +1702,9 @@
 
       } catch (err) {
         console.error('PATCH statut échoué :', err);
-        // Revert le select à l'ancienne valeur
+        // Revert le select à l'ancienne valeur (décrochés : statut vide possible)
         const rec = allRecords.find(r => r.id === recordId);
-        if (rec) sel.value = rec.fields['Statut'] || 'À rappeler';
+        if (rec) sel.value = rec.fields['Statut'] || (isAnswered(rec) ? '' : 'À rappeler');
         sel.classList.remove('is-saving');
         sel.classList.add('is-error');
         setTimeout(() => sel.classList.remove('is-error'), 2000);
