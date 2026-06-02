@@ -508,7 +508,7 @@
       .btn-refresh-text { display: none; }
       .btn-refresh { padding: 0.4rem 0.65rem; font-size: 1rem; }
       /* Filtres : bande horizontale scrollable au lieu de wrapper sur plusieurs lignes */
-      .filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 0.7rem 1.1rem; }
+      .filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 0.7rem 1.1rem; -webkit-mask-image: linear-gradient(to right, #000 90%, transparent); mask-image: linear-gradient(to right, #000 90%, transparent); }
       .filters::-webkit-scrollbar { display: none; }
       .filter-pill { flex: 0 0 auto; }
     }
@@ -1412,7 +1412,7 @@
 
     async function loadData() {
       const btn = document.querySelector('.btn-refresh');
-      if (btn) { btn.disabled = true; btn.textContent = '↻ Actualisation…'; }
+      if (btn) { btn.disabled = true; btn.innerHTML = '↻ <span class="btn-refresh-text">Actualisation…</span>'; }
       document.getElementById('tableContent').innerHTML = '<div class="loading">Chargement…</div>';
 
       try {
@@ -1457,7 +1457,7 @@
           '<div class="loading">Erreur de chargement — actualisez la page.</div>';
         console.error(e);
       } finally {
-        if (btn) { btn.disabled = false; btn.textContent = '↻ Actualiser'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '↻ <span class="btn-refresh-text">Actualiser</span>'; }
       }
     }
 
