@@ -1377,9 +1377,8 @@
       // Sous-titre dynamique
       const sub     = document.getElementById('pageSub');
       const dateStr = sub.dataset.date || '';
-      sub.textContent = todayCount > 0
-        ? `${dateStr} · ${todayCount} appel${todayCount > 1 ? 's' : ''} aujourd'hui`
-        : dateStr;
+      const plur = todayCount > 1 ? 's' : '';
+      sub.textContent = `${dateStr} · ${todayCount} appel${plur} manqué${plur} aujourd'hui`;
     }
 
     function getStatus(r) {
