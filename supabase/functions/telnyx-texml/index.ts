@@ -192,6 +192,23 @@ async function handleMissedCall(
   console.log('Missed call handled, SMS sent:', fromPhone);
 }
 
+// Quand on décroche un appel, on "résout" les appels MANQUÉS récents encore "À rappeler"
+// du MÊME numéro (le prospect a rappelé et on a répondu → plus rien à rappeler).
+// Ils passent en "Rappelé" (gardés dans l'historique, mais hors file d'attente).
+const RESOLVE_MISSED_WINDOW_MS = 24 * 60 * 60 * 1000; // 24h
+async function resolveRecentMissed(phone: string, clientEmail: string): Promise<void> {
+  const since = new Date(Date.now() - RESOLVE_MISSED_WINDOW_MS).toISOString();
+  const { error } = await supabaseAdmin()
+    .from('calls')
+    .update({ statut: 'Rappelé' })
+    .eq('phone', phone)
+    .eq('client_email', clientEmail)
+    .eq('type', 'Manqué')
+    .eq('statut', 'À rappeler')
+    .gte('occurred_at', since);
+  if (error) console.error('resolveRecentMissed failed:', error);
+}
+
 // Journalise un appel DÉCROCHÉ (conversation live). Pas de SMS, statut vide = "à qualifier".
 async function handleAnsweredCall(
   fromPhone: string,
@@ -199,7 +216,9 @@ async function handleAnsweredCall(
   profile: ClientProfile,
 ): Promise<void> {
   await upsertCall({ phone: fromPhone, occurredAt: new Date().toISOString(), clientEmail: profile.email, callSid, userId: profile.id, statut: '', type: 'Décroché' });
-  console.log('Answered call logged:', fromPhone);
+  // Le prospect a rappelé et on a décroché → ses appels manqués récents ne sont plus "à rappeler"
+  await resolveRecentMissed(fromPhone, profile.email);
+  console.log('Answered call logged + missed resolved:', fromPhone);
 }
 
 function xmlResponse(xml: string): Response {
