@@ -1279,6 +1279,7 @@
     }
 
     async function handleLogout() {
+      try { sessionStorage.removeItem(caCacheKey()); } catch (e) {}
       await sb.auth.signOut();
       currentUser = null;
       document.getElementById('loginEmail').value = '';
@@ -1675,10 +1676,37 @@
         <div class="table-foot"><span class="live-dot"></span>Mis à jour à ${now}</div>`;
     }
 
+    // Rendu complet du dashboard à partir de allRecords (cards, bandeau, callout, filtres, tableau)
+    function renderDashboard() {
+      updateStats();
+      updateCA();
+      renderNextCallout();
+      document.getElementById('filterPills').style.display =
+        (currentTab === 'missed' && missedRecords().length > 0) ? 'flex' : 'none';
+      renderTable();
+    }
+
+    function caCacheKey() {
+      return 'replyit_records_' + (currentUser?.id || currentUser?.email || 'anon');
+    }
+
     async function loadData() {
       const btn = document.querySelector('.btn-refresh');
       if (btn) { btn.disabled = true; btn.innerHTML = '↻ <span class="btn-refresh-text">Actualisation…</span>'; }
-      document.getElementById('tableContent').innerHTML = '<div class="loading">Chargement…</div>';
+
+      // Hydratation instantanée depuis le cache de session → pas de flash au rechargement (F5).
+      // On ré-affiche les dernières données connues, puis on rafraîchit en arrière-plan.
+      if (allRecords.length === 0) {
+        try {
+          const cached = sessionStorage.getItem(caCacheKey());
+          if (cached) allRecords = JSON.parse(cached) || [];
+        } catch (e) { /* cache illisible : ignoré */ }
+      }
+      if (allRecords.length > 0) {
+        renderDashboard();
+      } else {
+        document.getElementById('tableContent').innerHTML = '<div class="loading">Chargement…</div>';
+      }
 
       try {
         const res  = await fetch(API_URL, { headers: await apiHeaders() });
@@ -1689,20 +1717,16 @@
         // Tri : plus récents en premier
         allRecords.sort((a, b) => new Date(b.fields["Heure d'appel"] || 0) - new Date(a.fields["Heure d'appel"] || 0));
 
-        updateStats();
-        updateCA();
-        renderNextCallout();
+        try { sessionStorage.setItem(caCacheKey(), JSON.stringify(allRecords)); } catch (e) { /* quota/refus : ignoré */ }
 
-        // Filtres visibles uniquement sur l'onglet "manqués" avec des données
-        // (les empties par onglet sont gérés dans renderTable)
-        document.getElementById('filterPills').style.display =
-          (currentTab === 'missed' && missedRecords().length > 0) ? 'flex' : 'none';
-
-        renderTable();
+        renderDashboard();
 
       } catch (e) {
-        document.getElementById('tableContent').innerHTML =
-          '<div class="loading">Erreur de chargement — actualisez la page.</div>';
+        // Si on a déjà affiché des données (cache/précédentes), on les garde plutôt que d'effacer.
+        if (allRecords.length === 0) {
+          document.getElementById('tableContent').innerHTML =
+            '<div class="loading">Erreur de chargement — actualisez la page.</div>';
+        }
         console.error(e);
       } finally {
         if (btn) { btn.disabled = false; btn.innerHTML = '↻ <span class="btn-refresh-text">Actualiser</span>'; }
