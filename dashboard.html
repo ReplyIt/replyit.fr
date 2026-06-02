@@ -314,6 +314,15 @@
     .montant-input.is-saved { box-shadow: 0 0 0 2px var(--success-bg); border-color: var(--success); }
     .montant-input.is-error { box-shadow: 0 0 0 2px var(--danger-bg); border-color: var(--danger); }
 
+    /* "Prochain à rappeler" compact (dans la barre de titre de l'historique) */
+    .next-compact { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; margin: 0 1rem; font-size: 0.875rem; color: var(--text); }
+    .next-compact-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+    .next-compact-text a { color: var(--accent); font-weight: 700; }
+    .btn-call-mini { display: inline-flex; align-items: center; gap: 0.3rem; background: var(--accent); color: #fff; font-weight: 600; font-size: 0.8125rem; padding: 0.35rem 0.75rem; border-radius: 9999px; white-space: nowrap; flex-shrink: 0; }
+    .btn-call-mini:hover { background: var(--accent-hover); }
+    .btn-mark-mini { display: inline-flex; align-items: center; gap: 0.3rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-weight: 600; font-size: 0.8125rem; padding: 0.35rem 0.75rem; border-radius: 9999px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .btn-mark-mini:hover { border-color: var(--success); color: var(--success); }
+
     table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 
     thead th {
@@ -519,8 +528,11 @@
       .table-card .td-msg .msg-body { display: none; }
       .table-card tr.expanded .td-msg .msg-body { display: block; margin-top: 0.5rem; }
 
-      /* Header : titre + Actualiser sur une seule ligne (bouton en icône seule) */
-      .table-head { flex-wrap: nowrap; padding: 1rem 1.1rem; }
+      /* Header : titre + Actualiser sur la 1ère ligne, "Prochain à rappeler" compact en dessous */
+      .table-head { flex-wrap: wrap; padding: 1rem 1.1rem; }
+      .table-head .table-head-title { order: 1; }
+      .table-head .btn-refresh { order: 2; margin-left: auto; }
+      .table-head .next-compact { order: 3; flex-basis: 100%; margin: 0.7rem 0 0; flex-wrap: wrap; }
       .btn-refresh-text { display: none; }
       .btn-refresh { padding: 0.4rem 0.65rem; font-size: 1rem; }
       /* Filtres : bande horizontale scrollable au lieu de wrapper sur plusieurs lignes */
@@ -714,9 +726,6 @@
           </div>
         </div>
 
-        <!-- Callout "Prochain à rappeler" — rempli dynamiquement -->
-        <div id="next-callout-wrap" style="display:none"></div>
-
         <div class="stats-row">
           <div class="stat-card">
             <div class="stat-top">
@@ -768,6 +777,7 @@
         <div class="table-card">
           <div class="table-head">
             <span class="table-head-title">Historique des appels <span class="table-head-count" id="tableCount">0</span></span>
+            <div class="next-compact" id="next-compact" style="display:none"></div>
             <button class="btn-refresh" onclick="loadData()">↻ <span class="btn-refresh-text">Actualiser</span></button>
           </div>
           <div class="filters" id="filterPills">
@@ -1286,19 +1296,19 @@
     }
 
     function renderNextCallout() {
-      const wrap = document.getElementById('next-callout-wrap');
-      // Filtrer les "À rappeler"
+      const el = document.getElementById('next-compact');
+      if (!el) return;
       const toCall = allRecords.filter(r => getStatus(r) === 'À rappeler');
       if (toCall.length === 0) {
-        wrap.style.display = 'none';
-        wrap.innerHTML = '';
+        el.style.display = 'none';
+        el.innerHTML = '';
         return;
       }
       // Priorité : ceux avec un message Tally rempli > ceux sans, puis du plus ancien au plus récent
       const sorted = [...toCall].sort((a, b) => {
         const aMsg = (a.fields['Message prospect'] || '').trim().length > 0 ? 1 : 0;
         const bMsg = (b.fields['Message prospect'] || '').trim().length > 0 ? 1 : 0;
-        if (aMsg !== bMsg) return bMsg - aMsg; // ceux avec message d'abord
+        if (aMsg !== bMsg) return bMsg - aMsg;
         return new Date(a.fields["Heure d'appel"] || 0) - new Date(b.fields["Heure d'appel"] || 0);
       });
       const next = sorted[0];
@@ -1306,34 +1316,15 @@
       const rawNum = f['Numéro client'] || f['Name'] || '';
       const fmtNum = formatPhone(rawNum);
       const numEsc = esc(rawNum);
-      const iso = f["Heure d'appel"];
-      const waiting = iso ? fmtRelative(iso) : '—';
-      const msg = (f['Message prospect'] || '').trim();
       const recordId = esc(next.id);
 
-      wrap.innerHTML = `
-        <div class="next-callout">
-          <div>
-            <div class="next-header"><span class="next-pulse"></span> Prochain à rappeler</div>
-            <div class="next-phone"><a href="tel:${numEsc}">${esc(fmtNum)}</a></div>
-            <div class="next-waiting">En attente depuis ${esc(waiting)}</div>
-            ${msg
-              ? `<div class="next-msg">« ${esc(msg)} »</div>`
-              : `<div class="next-msg empty">Aucun message — le prospect n'a pas (encore) précisé sa demande</div>`}
-          </div>
-          <div class="next-actions">
-            <a href="tel:${numEsc}" class="btn-call">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              Appeler maintenant
-            </a>
-            <button class="btn-mark-called" onclick="markAsCalled('${recordId}')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              Marquer comme rappelé
-            </button>
-          </div>
-        </div>
+      el.innerHTML = `
+        <span class="next-pulse"></span>
+        <span class="next-compact-text">Prochain à rappeler : <a href="tel:${numEsc}"><strong>${esc(fmtNum)}</strong></a></span>
+        <a href="tel:${numEsc}" class="btn-call-mini">📞 Appeler</a>
+        <button class="btn-mark-mini" onclick="markAsCalled('${recordId}')" title="Marquer comme rappelé">✓ Rappelé</button>
       `;
-      wrap.style.display = 'block';
+      el.style.display = 'flex';
     }
 
     async function markAsCalled(recordId) {
