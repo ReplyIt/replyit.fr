@@ -79,12 +79,17 @@ Deno.serve(async (req) => {
   }
 
   if (req.method === 'PATCH') {
-    const { id, statut, montant } = await req.json();
+    const { id, statut, montant, rappeleLe } = await req.json();
     if (!id) return json({ error: 'Missing id' }, 400);
 
     const fields: Record<string, unknown> = {};
     if (typeof statut === 'string' && statut.length > 0) {
       fields.Statut = statut.normalize('NFC');
+    }
+    // Horodatage du 1er rappel (KPI "délai moyen de rappel"). Date ISO valide uniquement.
+    if (typeof rappeleLe === 'string' && rappeleLe.length > 0) {
+      const d = new Date(rappeleLe);
+      if (!isNaN(d.getTime())) fields['Rappelé le'] = d.toISOString();
     }
     if (montant !== undefined) {
       // montant: nombre >= 0, ou null/'' pour vider le champ

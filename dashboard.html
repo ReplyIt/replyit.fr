@@ -764,12 +764,12 @@
           </div>
           <div class="stat-card">
             <div class="stat-top">
-              <span class="stat-label">Réponses reçues</span>
+              <span class="stat-label">Taux de rappel</span>
               <span class="stat-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 7 23 1 17 1"/><line x1="16" y1="8" x2="23" y2="1"/><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
               </span>
             </div>
-            <div class="stat-value green" id="statReplies">—</div>
+            <div class="stat-value" id="statRecallRate">—</div>
           </div>
           <div class="stat-card">
             <div class="stat-top">
@@ -797,6 +797,15 @@
               </span>
             </div>
             <div class="stat-value blue" id="statRate">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-top">
+              <span class="stat-label">Délai moyen de rappel</span>
+              <span class="stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </span>
+            </div>
+            <div class="stat-value" id="statAvgDelay">—</div>
           </div>
         </div>
 
@@ -1304,7 +1313,6 @@
     function updateStats() {
       const missed    = missedRecords();
       const total     = missed.length;
-      const replies   = missed.filter(r => r.fields['Message prospect']?.trim()).length;
       const statusOf  = r => {
         const s = r.fields['Statut'];
         if (s === 'Nouveau') return 'À rappeler';
@@ -1318,15 +1326,30 @@
       const rate      = total > 0 ? Math.round((converted / total) * 100) : 0;
       const todayCount = missed.filter(r => isRecent(r.fields["Heure d'appel"])).length;
 
+      // Taux de rappel = leads effectivement recontactés (Rappelé + Converti) / total
+      const recalled    = called + converted;
+      const recallRate  = total > 0 ? Math.round((recalled / total) * 100) : 0;
+
+      // Délai moyen de rappel = moyenne (Rappelé le − Heure d'appel) sur les leads horodatés
+      let delaySum = 0, delayN = 0;
+      missed.forEach(r => {
+        const t0 = r.fields["Heure d'appel"], t1 = r.fields['Rappelé le'];
+        if (!t0 || !t1) return;
+        const d = new Date(t1) - new Date(t0);
+        if (Number.isFinite(d) && d >= 0) { delaySum += d; delayN++; }
+      });
+      const avgDelay = delayN > 0 ? fmtDuration(delaySum / delayN) : '—';
+
       // Compteurs des onglets
       setText('tabCountMissed', total);
       setText('tabCountAnswered', answeredRecords().length);
 
-      document.getElementById('statTotal').textContent   = total;
-      document.getElementById('statReplies').textContent = replies;
-      document.getElementById('statNew').textContent     = toCall;
-      document.getElementById('statCalled').textContent  = converted;
-      document.getElementById('statRate').textContent    = rate + '%';
+      setText('statTotal', total);
+      setText('statRecallRate', total > 0 ? recallRate + '%' : '—');
+      setText('statNew', toCall);
+      setText('statCalled', converted);
+      setText('statRate', total > 0 ? rate + '%' : '—');
+      setText('statAvgDelay', avgDelay);
 
       // Counts dans les filter pills
       document.getElementById('fc-all').textContent       = total;
@@ -1348,6 +1371,32 @@
       if (s === 'Nouveau') return 'À rappeler';
       if (s === 'Fermé')   return 'Sans suite';
       return s || 'À rappeler';
+    }
+
+    // Formate une durée (ms) en délai lisible : "12 min", "1 h 20", "2 j"
+    function fmtDuration(ms) {
+      const min = Math.round(ms / 60000);
+      if (min < 1) return '< 1 min';
+      if (min < 60) return min + ' min';
+      const h = Math.floor(min / 60), m = min % 60;
+      if (h < 24) return m ? `${h} h ${String(m).padStart(2,'0')}` : `${h} h`;
+      const d = Math.floor(h / 24);
+      return d + ' j';
+    }
+
+    // Horodate le 1er rappel (best-effort : ignore si le champ "Rappelé le" n'existe pas encore)
+    async function stampRecalledIfNeeded(rec, statut) {
+      if (!rec || rec.fields['Rappelé le']) return;
+      if (statut !== 'Rappelé' && statut !== 'Converti') return;
+      const ts = new Date().toISOString();
+      try {
+        const r = await fetch(API_URL, {
+          method: 'PATCH',
+          headers: await apiHeaders(),
+          body: JSON.stringify({ id: rec.id, rappeleLe: ts }),
+        });
+        if (r.ok) rec.fields['Rappelé le'] = ts;
+      } catch (e) { /* champ Airtable pas encore créé : on ignore */ }
     }
 
     function renderNextCallout() {
@@ -1400,6 +1449,7 @@
         });
         if (!res.ok) throw new Error('PATCH failed');
         rec.fields['Statut'] = 'Rappelé';
+        await stampRecalledIfNeeded(rec, 'Rappelé');
         updateStats();
         renderNextCallout();
         renderTable();
@@ -1679,6 +1729,9 @@
         // Mise à jour en mémoire
         const rec = allRecords.find(r => r.id === recordId);
         if (rec) rec.fields['Statut'] = newStatut;
+
+        // Horodate le 1er rappel (pour le KPI "délai moyen de rappel")
+        if (rec) await stampRecalledIfNeeded(rec, newStatut);
 
         // Mise à jour visuelle de la ligne et du select
         const row = sel.closest('tr');
