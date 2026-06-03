@@ -24,6 +24,9 @@ const corsHeaders = {
 const FALLBACK_CLIENT_EMAIL = Deno.env.get('CLIENT_EMAIL') ?? 'template@yopmail.com';
 const FALLBACK_SMS_SENDER = Deno.env.get('BREVO_SENDER') ?? 'ReplyIt';
 const TALLY_FORM_URL = Deno.env.get('TALLY_FORM_URL') ?? 'https://tally.so/r/VLDjpa';
+// Lien PUBLIC affiché dans le SMS : page de redirection sur notre domaine, qui décode
+// le numéro (encodé en base36, ~7 car.) → propre + numéro masqué dans le SMS.
+const PUBLIC_FORM_URL = Deno.env.get('PUBLIC_FORM_URL') ?? 'https://replyit.fr/r';
 
 // ⚠️ URL PUBLIQUE de cette fonction, construite depuis SUPABASE_URL (env fiable).
 // On NE PEUT PAS utiliser req.url : dans Supabase Edge Functions il contient l'URL
@@ -80,7 +83,9 @@ async function getClientProfile(telnyxNumber: string | undefined): Promise<Clien
 }
 
 function buildSmsContent(profile: ClientProfile, phone: string): string {
-  const tallyUrl = `${TALLY_FORM_URL}?phone=${encodeURIComponent(phone)}`;
+  // Numéro encodé en base36 (court ~7 car. + masqué) → décodé par la page replyit.fr/r
+  const code = Number(phone.replace(/\D/g, '')).toString(36);
+  const tallyUrl = `${PUBLIC_FORM_URL}?c=${code}`;
   const brand = profile.businessName?.trim().slice(0, 30) || 'Nous';
   if (profile.smsTemplate && profile.smsTemplate.trim().length > 0) {
     const body = profile.smsTemplate.trim().replace(/\{business_name\}/g, brand);

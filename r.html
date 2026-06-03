@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>ReplyIt — Redirection</title>
+  <style>
+    body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#f8fafc;color:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center}
+    .box{max-width:20rem;padding:1.5rem}
+    .dot{width:34px;height:34px;border:3px solid #e0f2fe;border-top-color:#0369a1;border-radius:50%;margin:0 auto 1rem;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    a{color:#0369a1;font-weight:600}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="dot"></div>
+    <p>Redirection vers le formulaire…</p>
+    <p id="fallback" style="display:none;font-size:.9rem">Si rien ne se passe, <a id="lnk" href="#">cliquez ici</a>.</p>
+  </div>
+  <script>
+    // ⚠️ Le formulaire Tally cible. À mettre à jour si tu changes de formulaire.
+    var TALLY = 'https://tally.so/r/VLDjpa';
+    (function () {
+      var c = new URLSearchParams(location.search).get('c') || '';
+      var phone = '';
+      try {
+        var n = parseInt(c, 36);            // code base36 -> numéro international
+        phone = (c && !isNaN(n)) ? '+' + n.toString(10) : '';
+      } catch (e) { phone = ''; }
+      var url = TALLY + (phone ? '?phone=' + encodeURIComponent(phone) : '');
+      document.getElementById('lnk').href = url;
+      document.getElementById('fallback').style.display = 'block';
+      location.replace(url);
+    })();
+  </script>
+</body>
+</html>
