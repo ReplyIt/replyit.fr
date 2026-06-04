@@ -98,10 +98,10 @@ Deno.serve(async (req) => {
               <h2>Nouveau client à provisionner (modèle numéro dédié)</h2>
               <p>Un client vient de payer son abonnement Stripe. Action requise :</p>
               <ol>
-                <li>Acheter un numéro Telnyx FR (Mission Control → Numbers)</li>
-                <li>L'assigner à l'app <strong>TeXML "ReplyIt TeXML"</strong> (PAS Call Control)</li>
-                <li>Exécuter le SQL ci-dessous (assigne le numéro Telnyx au client)</li>
-                <li>Dire au client : enregistrer ce numéro Telnyx dans ses contacts + vérifier que son mobile sonne ~18s avant sa messagerie (sinon ajuster le timeout)</li>
+                <li>Acheter un numéro Telnyx FR — Type <strong>"National" (09)</strong>, Feature <strong>Voice</strong> (Numbers → Buy Numbers)</li>
+                <li>⚠️ Au checkout : sélectionner le <strong>Requirement Group "ReplyIt - National FR"</strong> (menu "Requirement Groups" → plus aucun doc à fournir) + assigner la Connection <strong>"ReplyIt TeXML"</strong> (PAS Call Control). Laisser "Messaging Profile" vide.</li>
+                <li>Exécuter le SQL ci-dessous (assigne le numéro Telnyx au client → déclenche l'email "numéro prêt")</li>
+                <li>Dire au client : enregistrer ce numéro dans ses contacts + le diffuser (Google/pubs/devis) + vérifier que son mobile sonne ~18s avant sa messagerie (sinon ajuster le timeout)</li>
               </ol>
               <h3>Infos client</h3>
               <ul>
