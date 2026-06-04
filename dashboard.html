@@ -1062,7 +1062,7 @@
                 </div>
                 <textarea id="sTemplate" rows="4" placeholder="Tapez le texte de votre SMS…" style="width:100%;padding:0.625rem 0.875rem;font-family:inherit;font-size:0.875rem;line-height:1.5;border:1px solid var(--border);border-radius:0.5rem;resize:vertical;outline:none;background:var(--bg-card);color:var(--text);"></textarea>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.375rem;font-size:0.75rem;">
-                  <span style="color:var(--text-muted);">Compteur total <span style="text-decoration:underline dotted;cursor:help;" title="Le compteur inclut votre texte + le lien Tally. Sous 160 = 1 SMS (4,5 crédits Brevo).">(texte + lien)</span>.</span>
+                  <span style="color:var(--text-muted);">Compteur total <span style="text-decoration:underline dotted;cursor:help;" title="Le compteur inclut votre texte + le lien de rappel. Sous 160 = 1 SMS (4,5 crédits Brevo).">(texte + lien)</span>.</span>
                   <span id="sms-counter" style="font-weight:600;color:var(--text-muted);"><span id="sms-count-val">0</span> / <span id="sms-limit-val">160</span></span>
                 </div>
                 <div id="sms-unicode-warn" style="display:none;margin-top:0.5rem;padding:0.5rem 0.75rem;background:#fffbeb;border:1px solid #fde68a;border-radius:0.4rem;font-size:0.75rem;color:#92400e;">
@@ -2026,7 +2026,7 @@
     }
 
     // ── Settings ──────────────────────────────────────────────────────────────
-    const TALLY_URL_TEMPLATE = 'https://tally.so/r/VLDjpa?phone=%2B33000000000'; // estimation longueur
+    const SMS_LINK_TEMPLATE = 'https://replyit.fr/r?c=ffvx7wu'; // lien réel (numéro encodé) — aperçu + compteur
     const DEFAULT_SMS_TEMPLATE = (brand) =>
       `${brand} a bien reçu votre appel, on vous rappelle. Précisez votre demande :`;
 
@@ -2054,7 +2054,7 @@
       const bodyTemplate = raw || DEFAULT_SMS_TEMPLATE(brand);
       // Substituer {business_name} pour le preview et le compteur
       const body = bodyTemplate.replace(/\{business_name\}/g, brand);
-      const full = `${body} ${TALLY_URL_TEMPLATE}`;
+      const full = `${body} ${SMS_LINK_TEMPLATE}`;
       document.getElementById('sms-preview').textContent = full;
 
       const len = full.length;
@@ -2186,7 +2186,7 @@
       const brand = (business || 'Nous').slice(0, 30);
       const bodyTemplate = template || `${brand} a bien reçu votre appel, on vous rappelle. Précisez votre demande :`;
       const body = bodyTemplate.replace(/\{business_name\}/g, brand);
-      const full = `${body} ${TALLY_URL_TEMPLATE}`;
+      const full = `${body} ${SMS_LINK_TEMPLATE}`;
       const limit = hasNonGsmChars(full) ? 70 : 160;
       if (full.length > limit) {
         msgEl.textContent = `Trop long (${full.length}/${limit} caractères). ${limit === 70 ? 'Évitez les ô â ê î û pour passer à 160 chars.' : 'Raccourcissez votre texte.'}`;
