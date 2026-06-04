@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Pages privées / applicatives (inutile de les indexer)
+Disallow: /dashboard
+
+Sitemap: https://replyit.fr/sitemap.xml
