@@ -10,3 +10,6 @@ node_modules/
 ai-memory/
 # Blueprints Make (contiennent clés API)
 *.blueprint*.json
+
+# Fichiers de prévisualisation locaux (non publiés)
+_preview-*.html
