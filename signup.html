@@ -75,6 +75,14 @@
     .login-link a { color: var(--accent); font-weight: 600; }
     .secure { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem; font-size: 0.75rem; color: var(--text-muted); margin-top: 1.5rem; }
 
+    /* Mobile : stepper compact (les libellés débordaient) — on garde les ronds + le libellé de l'étape en cours */
+    @media (max-width: 560px) {
+      .steps { gap: 0.3rem; max-width: 100%; }
+      .step-sep { width: 1rem; }
+      .step span { display: none; }
+      .step.active span { display: inline; }
+    }
+
     /* Email verification card */
     .verify-icon { font-size: 3rem; text-align: center; margin-bottom: 1rem; }
     .verify-email { font-weight: 700; color: var(--accent); word-break: break-all; }
