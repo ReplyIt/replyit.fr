@@ -63,6 +63,9 @@
     .cta-box p{font-size:1.05rem;margin-bottom:1.25rem}
     .btn{display:inline-flex;align-items:center;gap:.5rem;font-weight:700;font-size:1rem;padding:.85rem 1.75rem;border-radius:9999px;background:var(--accent);color:#fff;text-decoration:none;transition:.2s}
     .btn:hover{background:#075985}
+    .cta-actions{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center}
+    .btn-outline{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+    .btn-outline:hover{background:var(--accent-subtle)}
     footer{border-top:1px solid var(--border);padding:2rem 1.25rem;text-align:center;font-size:.8125rem;color:var(--muted)}
     footer a{margin:0 .5rem;color:var(--accent);text-decoration:none}
   </style>
@@ -100,7 +103,10 @@
 
     <div class="cta-box">
       <p>Ne ratez plus jamais un client à cause d'un appel manqué.</p>
-      <a href="/signup" class="btn">Essayer ReplyIt →</a>
+      <div class="cta-actions">
+        <a href="/signup" class="btn">Essayer ReplyIt →</a>
+        <a href="/demo" class="btn btn-outline">Réserver une démo</a>
+      </div>
     </div>
   </main>
 
