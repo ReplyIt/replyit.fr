@@ -11,8 +11,19 @@
 // Stockage : Postgres (table public.calls). Migré depuis Airtable (2026-06-02).
 //
 // Routing par query param `step` :
-//   (aucun)         → appel entrant initial → <Dial timeout> vers le mobile artisan
-//   step=dialresult → callback fin de <Dial> : completed = répondu live, sinon SMS
+//   (aucun)          → appel entrant initial → <Dial timeout> vers le mobile artisan
+//   step=childstatus → décrochage de l'artisan (jambe enfant) → journalise 'Décroché'
+//   step=dialresult  → callback fin de <Dial> : completed = répondu live, sinon SMS
+//
+// ⚠️ POURQUOI DEUX SOURCES POUR "DÉCROCHÉ" :
+//   Le callback `action` du <Dial> (step=dialresult) n'est émis que si la jambe PARENT
+//   (le prospect) est encore en ligne à la fin du <Dial>. Quand le prospect raccroche en
+//   premier — le cas le plus fréquent en usage réel — Telnyx n'exécute plus la suite du
+//   TeXML et le callback n'arrive JAMAIS : l'appel décroché n'était pas journalisé.
+//   `step=childstatus` (<Number statusCallback>) porte sur la jambe ENFANT et part dès le
+//   décrochage, quel que soit qui raccroche ensuite. Les deux peuvent arriver pour un même
+//   appel : la contrainte unique sur calls.call_sid + upsert ON CONFLICT DO NOTHING
+//   garantit l'absence de doublon, et `dialresult` reste un filet si l'un des deux manque.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -252,6 +263,46 @@ Deno.serve(async (req) => {
     const bodyCallSid = formData.get('CallSid')?.toString() ?? '';
 
     // ───────────────────────────────────────────────────────────────────────
+    // STEP: childstatus — callback de la JAMBE ENFANT (mobile de l'artisan).
+    // Émis par <Number statusCallback> dès que l'artisan décroche, indépendamment de
+    // l'état de la jambe parent. C'est la source FIABLE du journal "Décroché" : le
+    // callback `action` du <Dial>, lui, n'est pas envoyé quand le prospect raccroche
+    // en premier (comportement TeXML : plus de jambe parent = plus de suite à exécuter).
+    //
+    // ⚠️ Ce chemin n'envoie JAMAIS de SMS. Il ne fait qu'écrire la ligne 'Décroché'.
+    //    Le flux "appel manqué → SMS" reste entièrement dans `dialresult`, inchangé.
+    // ───────────────────────────────────────────────────────────────────────
+    if (step === 'childstatus') {
+      const caller = url.searchParams.get('caller') ?? '';
+      const tn = url.searchParams.get('tn') ?? '';
+      const cid = url.searchParams.get('cid') ?? formData.get('ParentCallSid')?.toString() ?? '';
+      const callStatus = formData.get('CallStatus')?.toString() ?? '';
+      console.log('Child leg status:', { cid, callStatus, childSid: bodyCallSid });
+
+      // L'événement `answered` arrive avec CallStatus='in-progress' (compat. TwiML).
+      // On tolère 'answered' au cas où Telnyx enverrait le nom de l'événement.
+      if (callStatus !== 'in-progress' && callStatus !== 'answered') {
+        return new Response(null, { status: 204, headers: corsHeaders });
+      }
+      if (!cid || !caller) {
+        console.warn('childstatus sans cid/caller, ignoré');
+        return new Response(null, { status: 204, headers: corsHeaders });
+      }
+
+      const profile = await getClientProfile(tn);
+      try {
+        // upsert ON CONFLICT DO NOTHING sur call_sid → si `dialresult` journalise le
+        // même appel (cas "l'artisan raccroche en premier", où les DEUX callbacks
+        // partent), la seconde écriture ne fait rien. Aucun doublon possible.
+        await handleAnsweredCall(caller, cid, profile);
+      } catch (e) { console.error('handleAnsweredCall (childstatus) failed:', e); }
+
+      // 204 sans corps : un statusCallback n'attend pas de TeXML en retour, et on
+      // évite tout risque qu'une réponse <Response/> soit interprétée sur l'appel en cours.
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
     // STEP: dialresult — callback de fin de <Dial>.
     // "completed" = décrochage HUMAIN (timeout court < messagerie). Sinon = manqué → SMS.
     // ───────────────────────────────────────────────────────────────────────
@@ -300,9 +351,17 @@ Deno.serve(async (req) => {
 
     // Modèle numéro dédié : on sonne le mobile de l'artisan. Timeout COURT (< messagerie).
     // ⚠️ PAS de answerOnBridge : on décroche l'appel entrant immédiatement (sinon 480 → boucle).
-    const dialAction = `${base}?step=dialresult&caller=${enc(bodyFrom)}&tn=${enc(bodyTo)}&cid=${enc(bodyCallSid)}`;
+    const qs = `caller=${enc(bodyFrom)}&tn=${enc(bodyTo)}&cid=${enc(bodyCallSid)}`;
+    const dialAction = `${base}?step=dialresult&${qs}`;
+    // Callback de la JAMBE ENFANT (mobile de l'artisan), émis par <Number statusCallback>.
+    // Contrairement au callback `action` du <Dial>, il ne dépend PAS de la jambe parent :
+    // il part au décrochage, même si le prospect raccroche en premier — cas où `action`
+    // n'est jamais envoyé (= bug des appels décrochés non journalisés).
+    const childStatus = `${base}?step=childstatus&${qs}`;
     const xml = `<Response>
-  <Dial timeout="${DIAL_TIMEOUT_SEC}" action="${esc(dialAction)}" method="POST" callerId="${esc(bodyTo)}">${esc(profile.forwardToPhone)}</Dial>
+  <Dial timeout="${DIAL_TIMEOUT_SEC}" action="${esc(dialAction)}" method="POST" callerId="${esc(bodyTo)}">
+    <Number statusCallback="${esc(childStatus)}" statusCallbackEvent="answered" statusCallbackMethod="POST">${esc(profile.forwardToPhone)}</Number>
+  </Dial>
 </Response>`;
     return xmlResponse(xml);
   } catch (err) {
