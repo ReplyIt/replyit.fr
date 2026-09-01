@@ -1060,7 +1060,10 @@
           <a href="/signup?plan=starter" id="price-cta" class="btn btn-primary btn-lg price-cta">Choisir Starter →</a>
         </div>
 
-        <!-- TODO: réactiver le plan Pro quand l'agent vocal IA sera prêt -->
+        <!-- TODO: réactiver le plan Pro quand l'agent vocal IA sera prêt.
+             ⚠️ À la réactivation : le bouton ci-dessous a href="#" et ne mène nulle part.
+             Lui donner une destination (/demo, ou un vrai formulaire d'attente) AVANT
+             de retirer le display:none, sinon les visiteurs cliqueront dans le vide. -->
         <div class="price-card" style="display:none;">
           <div class="price-name">Pro · Agent vocal IA</div>
           <div class="price-amount">
