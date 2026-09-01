@@ -13,3 +13,17 @@ ai-memory/
 
 # Fichiers de prévisualisation locaux (non publiés)
 _preview-*.html
+
+# Outillage local des assistants de code
+.claude/
+
+# Documents de travail : contrats, devis… ⚠️ ce dépôt est PUBLIC et servi par
+# GitHub Pages — tout fichier commité devient une URL sur replyit.fr.
+*.pdf
+
+# Maquettes non publiées
+landing-proto.html
+
+# Le backend (Edge Functions + migrations) a déménagé le 01/09/2026 dans le
+# dépôt PRIVÉ ReplyIt/replyit-backend, pour ne plus être servi publiquement.
+supabase/
