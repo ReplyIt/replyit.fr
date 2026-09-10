@@ -410,6 +410,11 @@
        ╚════════════════════════════════════════════════════════════╝ */
     .testi-grid { display: grid; gap: 1.5rem; }
     @media (min-width: 768px) { .testi-grid { grid-template-columns: repeat(3, 1fr); } }
+    .testi-single { max-width: 40rem; margin: 0 auto; }
+    @media (min-width: 768px) { .testi-single { grid-template-columns: 1fr; } }
+    .testi-single .testi-quote { font-size: 1.0625rem; }
+    .testi-source { font-size: 0.8125rem; color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
+    .testi-source:hover { color: var(--accent); }
     .testi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 1rem; }
     .testi-stars { color: #f59e0b; letter-spacing: 0.1em; font-size: 1rem; }
     .testi-quote { font-size: 0.9375rem; color: var(--text); line-height: 1.65; }
@@ -1033,28 +1038,31 @@
 
   <!-- ╔════════════ TESTIMONIALS ════════════╗ -->
   <!-- TODO: réactiver dès qu'on a 3 vrais témoignages clients beta avec photos -->
-  <section id="avis" style="display:none;">
+  <section id="avis">
     <div class="container">
       <header class="section-header">
         <div class="section-tag">Ils en parlent</div>
-        <h2 class="section-title">Ce que disent <em>les artisans</em></h2>
+        <h2 class="section-title">La parole à <em>nos clients</em></h2>
       </header>
 
-      <div class="testi-grid">
-        <!-- Emplacement des témoignages clients. Vide volontairement.
-
-             Trois témoignages INVENTÉS s'y trouvaient (noms de personnes et chiffres
-             fictifs) ; supprimés le 01/09/2026 — voir l'historique Git. Ils étaient
-             masqués, donc jamais affichés, mais présents dans le code source servi en
-             production, et un simple retrait du display:none les aurait publiés.
-             Un faux avis client est une pratique commerciale trompeuse
-             (art. L121-2 du code de la consommation), contrôlée par la DGCCRF.
-
-             N'insérer ici QUE de vrais témoignages : nom réel, entreprise, accord écrit
-             de la personne, et si possible un lien vers la source publique (avis
-             Trustpilot, recommandation LinkedIn) pour qu'il soit vérifiable par le
-             visiteur. Retirer le display:none quand il y en a au moins deux ou trois. -->
+      <!-- Uniquement de vrais témoignages : nom réel, entreprise, et lien vers la source
+           publique pour que le visiteur puisse vérifier. Trois témoignages inventés ont
+           été supprimés d'ici le 01/09/2026 (art. L121-2 du code de la consommation).
+           Avec 2 ou 3 avis, retirer « testi-single » pour revenir à la grille en colonnes. -->
+      <div class="testi-grid testi-single">
+        <div class="testi-card">
+          <div class="testi-stars" aria-label="5 étoiles sur 5">★★★★★</div>
+          <p class="testi-quote">« Outil professionnel, pratique et simple d’utilisation. Fini les appels manqués dont on ne connaît même pas la raison, grâce à replyit la demande de notre client est précisée et nous n’avons plus qu’à rappeler. Je recommande ! »</p>
+          <div class="testi-author">
+            <div class="testi-avatar" aria-hidden="true">PC</div>
+            <div>
+              <div class="testi-name">Pierre Colin</div>
+              <div class="testi-meta">PC AUTO · <a class="testi-source" href="https://fr.trustpilot.com/reviews/6aa1a634d588bbdd3b0f17dc" target="_blank" rel="noopener">Voir l’avis sur Trustpilot</a></div>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
   </section>
 
   <!-- ╔════════════ PRICING ════════════╗ -->
