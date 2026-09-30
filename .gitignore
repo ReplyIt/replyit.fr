@@ -21,6 +21,9 @@ _preview-*.html
 # GitHub Pages — tout fichier commité devient une URL sur replyit.fr.
 *.pdf
 
+# Contexte projet pour les assistants (chiffres, marges, commissions) : privé.
+ReplyIt-contexte-projet.md
+
 # Maquettes non publiées
 landing-proto.html
 
