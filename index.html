@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <meta name="description" content="ReplyIt — Ne ratez plus jamais un client. SMS automatique après appel manqué pour artisans et TPE.">
-  <title>ReplyIt — Ne ratez plus jamais un client</title>
+  <meta name="description" content="Quand vous ne décrochez pas, ReplyIt envoie en quelques secondes un SMS à votre nom à la personne qui a appelé, pour qu'elle ne parte pas chez un concurrent. Pour artisans et TPE. 99 € HT/mois, sans engagement.">
+  <title>ReplyIt — SMS automatique après un appel manqué, pour artisans</title>
   <link rel="canonical" href="https://replyit.fr/">
   <meta name="robots" content="index, follow">
   <meta name="author" content="ReplyIt">
@@ -39,10 +39,19 @@
       "price": "99",
       "priceCurrency": "EUR"
     },
+    "disambiguatingDescription": "ReplyIt (replyit.fr) est un service français de SMS automatique après un appel manqué, destiné aux artisans et TPE. À ne pas confondre avec Replit, plateforme de développement logiciel.",
     "provider": {
       "@type": "Organization",
+      "@id": "https://replyit.fr/#organization",
       "name": "ReplyIt",
-      "url": "https://replyit.fr/"
+      "url": "https://replyit.fr/",
+      "logo": "https://replyit.fr/og-image.png",
+      "email": "contact@replyit.fr",
+      "areaServed": "FR",
+      "sameAs": [
+        "https://www.facebook.com/profile.php?id=61595256356899",
+        "https://fr.trustpilot.com/review/replyit.fr"
+      ]
     }
   }
   </script>
@@ -67,7 +76,7 @@
       "name": "Pourquoi pas juste utiliser un répondeur ?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Parce que 78% des prospects ne laissent pas de message vocal et appellent immédiatement un concurrent. Le SMS, lui, est lu à 98%. Et le formulaire vous donne exactement ce dont vous avez besoin pour rappeler intelligemment."
+        "text": "Parce qu'un répondeur attend que le client fasse l'effort de laisser un message, et beaucoup raccrochent pour appeler l'artisan suivant, surtout en cas d'urgence. Le SMS part tout seul, sans que le client ait rien à faire. Et le formulaire vous donne exactement ce dont vous avez besoin pour rappeler intelligemment."
       }
     },
     {
@@ -92,6 +101,22 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "Tout est hébergé dans l'Union européenne, conforme RGPD. On ne revend jamais vos données, on ne contacte jamais vos clients en notre nom. Vous restez maître de votre fichier prospect."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "ReplyIt, c'est pour quels métiers ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pour les artisans et TPE qui ratent des appels parce qu'ils sont en intervention : plombiers, serruriers, chauffagistes, électriciens, garages et carrosseries, et plus largement les métiers du dépannage et du bâtiment. Si vous payez de la publicité pour être appelé, c'est là que ReplyIt est le plus rentable."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quelle différence avec un secrétariat téléphonique ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Un secrétariat décroche à votre place et peut prendre des rendez-vous, mais il se paie souvent au volume d'appels. ReplyIt ne décroche pas : il envoie un SMS à votre nom dès l'appel manqué, et c'est vous qui rappelez le client. Le prix est fixe : 99 € HT par mois, sans engagement."
       }
     },
     {
@@ -597,7 +622,9 @@
       .how .mdash { max-width: 300px; }
       .how .how-nav { margin-top: 2rem; }
     }
+    .faq-panel a { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
   </style>
+  <script defer src="https://cloud.umami.is/script.js" data-website-id="94dc85ea-3dd8-49f5-b4e4-a91c437476cc" data-domains="replyit.fr"></script>
 </head>
 <body>
 
@@ -1153,7 +1180,7 @@
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
           <div class="faq-panel">
-            <p>Parce que <strong>78% des prospects ne laissent pas de message vocal</strong> et appellent immédiatement un concurrent. Le SMS, lui, est lu à 98%. Et le formulaire vous donne exactement ce dont vous avez besoin pour rappeler intelligemment.</p>
+            <p>Parce qu'un répondeur attend que le client fasse l'effort de laisser un message, et <strong>beaucoup raccrochent pour appeler l'artisan suivant</strong>, surtout en cas d'urgence. Le SMS part tout seul, sans que le client ait rien à faire. Et le formulaire vous donne exactement ce dont vous avez besoin pour rappeler intelligemment.</p>
           </div>
         </div>
 
@@ -1184,6 +1211,26 @@
           </button>
           <div class="faq-panel">
             <p>Tout est hébergé <strong>dans l'Union européenne</strong>, conforme RGPD. <strong>On ne revend jamais vos données</strong>, on ne contacte jamais vos clients en notre nom. Vous restez maître de votre fichier prospect.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" aria-expanded="false">
+          <button class="faq-trigger" onclick="toggleFaq(this)">
+            <span>ReplyIt, c'est pour quels métiers ?</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-panel">
+            <p>Pour les artisans et TPE qui ratent des appels parce qu'ils sont en intervention : <a href="/blog/plombier-appels-manques">plombiers</a>, <a href="/blog/serrurier-appels-manques">serruriers</a>, <a href="/blog/chauffagiste-appels-manques">chauffagistes</a>, <a href="/blog/electricien-appels-manques">électriciens</a>, <a href="/blog/garage-carrosserie-appels-manques">garages et carrosseries</a>, et plus largement les métiers du dépannage et du bâtiment. Si vous payez de la publicité pour être appelé, c'est là que ReplyIt est <strong>le plus rentable</strong>.</p>
+          </div>
+        </div>
+
+        <div class="faq-item" aria-expanded="false">
+          <button class="faq-trigger" onclick="toggleFaq(this)">
+            <span>Quelle différence avec un secrétariat téléphonique ?</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-panel">
+            <p>Un secrétariat décroche à votre place et peut prendre des rendez-vous, mais il se paie souvent au volume d'appels. ReplyIt ne décroche pas : il envoie un <strong>SMS à votre nom dès l'appel manqué</strong>, et c'est vous qui rappelez le client. Le prix est fixe : 99 € HT par mois, sans engagement. <a href="/blog/secretariat-telephonique-ou-sms-automatique">Voir le comparatif complet</a>.</p>
           </div>
         </div>
 
