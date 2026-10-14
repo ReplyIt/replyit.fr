@@ -687,6 +687,19 @@
       .how .how-nav { margin-top: 2rem; }
     }
     .faq-panel a { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+
+    /* ── Guides par métier ── */
+    .guides { padding: 4rem 0; }
+    .guides-grid { display: grid; gap: 0.875rem; grid-template-columns: 1fr; max-width: 56rem; margin: 0 auto; }
+    @media (min-width: 640px) { .guides-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 960px) { .guides-grid { grid-template-columns: repeat(3, 1fr); } }
+    .guide-card { display: block; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; color: var(--text); text-decoration: none; transition: border-color .2s, transform .2s; }
+    .guide-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .guide-card .gk { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+    .guide-card .gt { display: block; font-weight: 700; margin-top: 0.3rem; line-height: 1.35; }
+    .guide-card .gm { display: block; font-size: 0.875rem; color: var(--text-muted); margin-top: 0.3rem; }
+    .guides-more { text-align: center; margin-top: 1.5rem; }
+    .guides-more a { color: var(--accent); font-weight: 600; }
   </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="94dc85ea-3dd8-49f5-b4e4-a91c437476cc" data-domains="replyit.fr"></script>
 </head>
@@ -1103,6 +1116,7 @@
         </div>
         <div class="calc-cta">
           <a href="/signup" class="btn btn-lg">Arrêter de perdre cet argent →</a>
+          <p style="margin-top:1rem;font-size:0.875rem;"><a href="/calculateur-appels-manques" style="color:#7dd3fc;">Calcul détaillé avec vos jours travaillés →</a></p>
         </div>
       </div>
     </div>
@@ -1243,6 +1257,50 @@
     </div>
   </section>
 
+  <!-- ╔════════════ GUIDES PAR MÉTIER ════════════╗ -->
+  <section class="guides" aria-labelledby="guides-title">
+    <div class="container">
+      <header class="section-header">
+        <div class="section-tag">Guides</div>
+        <h2 class="section-title" id="guides-title">Des conseils pour <em>votre métier</em></h2>
+        <p class="section-desc">Pourquoi les appels manqués coûtent cher dans votre métier, et comment ne plus perdre ces clients.</p>
+      </header>
+      <div class="guides-grid">
+        <a class="guide-card" href="/calculateur-appels-manques">
+          <span class="gk">Outil gratuit</span>
+          <span class="gt">Calculez ce que vous coûtent vos appels manqués</span>
+          <span class="gm">Vos chiffres, en 30 secondes</span>
+        </a>
+        <a class="guide-card" href="/blog/plombier-appels-manques">
+          <span class="gk">Plomberie</span>
+          <span class="gt">Plombier : ne plus perdre un client à cause d'un appel manqué</span>
+          <span class="gm">Fuites et urgences</span>
+        </a>
+        <a class="guide-card" href="/blog/serrurier-appels-manques">
+          <span class="gk">Serrurerie</span>
+          <span class="gt">Serrurier : ne plus perdre un dépannage</span>
+          <span class="gm">Portes claquées, la nuit aussi</span>
+        </a>
+        <a class="guide-card" href="/blog/chauffagiste-appels-manques">
+          <span class="gk">Chauffage</span>
+          <span class="gt">Chauffagiste : ne plus rater les appels de panne</span>
+          <span class="gm">Saison de chauffe</span>
+        </a>
+        <a class="guide-card" href="/blog/electricien-appels-manques">
+          <span class="gk">Électricité</span>
+          <span class="gt">Électricien : ne plus perdre un client</span>
+          <span class="gm">Pannes et chantiers à chiffrer</span>
+        </a>
+        <a class="guide-card" href="/blog/garage-carrosserie-appels-manques">
+          <span class="gk">Automobile</span>
+          <span class="gt">Garage et carrosserie : ne plus perdre un client</span>
+          <span class="gm">Pannes, révisions, devis</span>
+        </a>
+      </div>
+      <p class="guides-more"><a href="/blog/secretariat-telephonique-ou-sms-automatique">Secrétariat téléphonique ou SMS automatique : le comparatif</a> · <a href="/blog/">Tous les articles</a></p>
+    </div>
+  </section>
+
   <!-- ╔════════════ FAQ ════════════╗ -->
   <section id="faq">
     <div class="container">
@@ -1370,6 +1428,7 @@
             <li><a href="#tarifs">Tarifs</a></li>
             <li><a href="#faq">FAQ</a></li>
             <li><a href="/blog/">Blog</a></li>
+            <li><a href="/calculateur-appels-manques">Calculateur</a></li>
           </ul>
         </div>
         <div class="footer-col">
