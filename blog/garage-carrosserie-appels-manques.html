@@ -144,6 +144,12 @@
     .sources li{margin-bottom:.35rem}
     .related{margin-top:2rem}
     .related a{display:block;margin-bottom:.4rem}
+    .toc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin:0 0 1.75rem}
+    .toc strong{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem}
+    .toc ol{margin:0 0 0 1.2rem;padding:0}
+    .toc li{margin:.2rem 0;font-size:.95rem}
+    .toc a{color:var(--accent);font-weight:600;text-decoration:none}
+    h2[id]{scroll-margin-top:6rem}
   </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="94dc85ea-3dd8-49f5-b4e4-a91c437476cc" data-domains="replyit.fr"></script>
 </head>
@@ -161,20 +167,30 @@
 
     <div class="tldr"><strong>Réponse courte :</strong> dans un garage, on rate des appels parce qu'on a les mains dans le moteur ou un client au comptoir. La personne qui appelle pour une panne ou un devis appelle alors le garage suivant. Un SMS automatique envoyé dès l'appel manqué lui montre que vous l'avez vue et que vous la rappelez entre deux interventions.</div>
 
-    <h2>Pourquoi un garage rate autant d'appels</h2>
+    <nav class="toc" aria-label="Sommaire"><strong>Sommaire</strong><ol>
+      <li><a href="#pourquoi-un-garage-rate-autant-d-appels">Pourquoi un garage rate autant d'appels</a></li>
+      <li><a href="#ce-que-fait-le-client-quand-vous-ne-decrochez-pas">Ce que fait le client quand vous ne décrochez pas</a></li>
+      <li><a href="#le-calcul-ce-qu-un-appel-manque-vous-coute">Le calcul : ce qu'un appel manqué vous coûte</a></li>
+      <li><a href="#les-4-solutions-pour-ne-plus-perdre-ces-appels">Les 4 solutions pour ne plus perdre ces appels</a></li>
+      <li><a href="#comment-ca-marche-avec-replyit">Comment ça marche avec ReplyIt</a></li>
+      <li><a href="#questions-frequentes">Questions fréquentes</a></li>
+    </ol></nav>
+
+
+    <h2 id="pourquoi-un-garage-rate-autant-d-appels">Pourquoi un garage rate autant d'appels</h2>
     <p>Ce n'est pas un manque de sérieux, c'est le métier : les mains pleines de cambouis, le bruit du compresseur, un client déjà au comptoir, une intervention qu'on ne peut pas lâcher. Décrocher à chaque sonnerie, c'est impossible, surtout dans un petit garage sans secrétariat.</p>
 
-    <h2>Ce que fait le client quand vous ne décrochez pas</h2>
+    <h2 id="ce-que-fait-le-client-quand-vous-ne-decrochez-pas">Ce que fait le client quand vous ne décrochez pas</h2>
     <p>Une voiture en panne, un rendez-vous de révision, un devis de carrosserie après un accrochage : le client veut une réponse vite. Si ça ne décroche pas, il appelle le garage suivant sur Google.</p>
     <p>La vitesse de réponse est décisive. Une étude publiée dans la Harvard Business Review (Oldroyd, McElheran et Elkington, 2011), menée auprès de 2 241 entreprises américaines, a montré que celles qui répondaient à une demande en moins d'une heure avaient <strong>près de 7 fois plus de chances</strong> de la transformer en vrai contact commercial que celles qui répondaient une heure plus tard. L'étude portait sur des demandes reçues en ligne, pas sur des appels d'artisans, mais la logique est la même : le premier qui répond a l'avantage.</p>
 
-    <h2>Le calcul : ce qu'un appel manqué vous coûte</h2>
+    <h2 id="le-calcul-ce-qu-un-appel-manque-vous-coute">Le calcul : ce qu'un appel manqué vous coûte</h2>
     <p>Dans l'automobile, le panier est élevé : une révision, une réparation ou un travail de carrosserie représente souvent plusieurs centaines d'euros. Prenez vos propres chiffres.</p>
     <p>Exemple : <strong>2 appels manqués par jour</strong> sur 24 jours d'ouverture, dont un sur trois aurait donné un rendez-vous à <strong>300 €</strong> :</p>
     <div class="calc">2 × 24 × 1/3 × 300 € = <strong>environ 4 800 € de chiffre d'affaires qui partent ailleurs chaque mois.</strong></div>
     <p>Et un client bien reçu revient pour l'entretien suivant, les pneus, le contrôle technique.</p>
 
-    <h2>Les 4 solutions pour ne plus perdre ces appels</h2>
+    <h2 id="les-4-solutions-pour-ne-plus-perdre-ces-appels">Les 4 solutions pour ne plus perdre ces appels</h2>
     <div class="table-wrap">
     <table class="cmp">
       <thead><tr><th>Solution</th><th>Avantage</th><th>Limite</th></tr></thead>
@@ -187,14 +203,14 @@
     </table>
     </div>
 
-    <h2>Comment ça marche avec ReplyIt</h2>
+    <h2 id="comment-ca-marche-avec-replyit">Comment ça marche avec ReplyIt</h2>
     <p>ReplyIt vous fournit un <strong>numéro professionnel dédié</strong> qui fait sonner votre mobile. Si vous ne décrochez pas, la personne reçoit en quelques secondes un SMS à votre nom :</p>
     <div class="calc">« Garage Lefèvre a bien reçu votre appel, on vous rappelle. Précisez votre demande : [lien] »</div>
     <p>Elle peut décrire son besoin via le lien. Vous retrouvez chaque appel manqué et chaque demande dans un tableau de bord, et vous rappelez quand vous avez les mains libres, en sachant déjà de quoi il s'agit. Vous mettez ce numéro là où arrivent les nouveaux clients (fiche Google, site, annonces, véhicule) ; vos clients habituels peuvent garder votre numéro actuel.</p>
     <p>L'abonnement coûte <strong>99 € HT par mois, sans engagement</strong>.</p>
     <p>Le client peut indiquer son véhicule et sa demande via le lien : vous rappelez en sachant déjà s'il s'agit d'une panne, d'une révision ou d'un devis de carrosserie.</p>
 
-    <h2>Questions fréquentes</h2>
+    <h2 id="questions-frequentes">Questions fréquentes</h2>
     <div class="faq">
     <h3>Combien coûte un appel manqué à un garage ?</h3>
     <p>Cela dépend de votre panier moyen. Deux appels manqués par jour sur 24 jours d'ouverture, dont un sur trois aurait donné un rendez-vous à 300 €, représentent environ 4 800 € par mois.</p>

@@ -144,6 +144,12 @@
     .sources li{margin-bottom:.35rem}
     .related{margin-top:2rem}
     .related a{display:block;margin-bottom:.4rem}
+    .toc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin:0 0 1.75rem}
+    .toc strong{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem}
+    .toc ol{margin:0 0 0 1.2rem;padding:0}
+    .toc li{margin:.2rem 0;font-size:.95rem}
+    .toc a{color:var(--accent);font-weight:600;text-decoration:none}
+    h2[id]{scroll-margin-top:6rem}
   </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="94dc85ea-3dd8-49f5-b4e4-a91c437476cc" data-domains="replyit.fr"></script>
 </head>
@@ -161,22 +167,33 @@
 
     <div class="tldr"><strong>Réponse courte :</strong> en pleine saison de chauffe, un client sans chauffage appelle plusieurs chauffagistes jusqu'à ce que l'un réponde. Un SMS automatique envoyé dès l'appel manqué lui confirme que vous l'avez vu et que vous le rappelez. Et un dépannage réussi, c'est souvent un contrat d'entretien annuel derrière.</div>
 
-    <h2>L'hiver, tout le monde appelle en même temps</h2>
+    <nav class="toc" aria-label="Sommaire"><strong>Sommaire</strong><ol>
+      <li><a href="#l-hiver-tout-le-monde-appelle-en-meme-temps">L'hiver, tout le monde appelle en même temps</a></li>
+      <li><a href="#ce-que-fait-le-client-quand-vous-ne-decrochez-pas">Ce que fait le client quand vous ne décrochez pas</a></li>
+      <li><a href="#panne-aujourd-hui-client-pour-des-annees">Panne aujourd'hui, client pour des années</a></li>
+      <li><a href="#le-calcul-ce-qu-un-appel-manque-vous-coute">Le calcul : ce qu'un appel manqué vous coûte</a></li>
+      <li><a href="#les-4-solutions-pour-ne-plus-perdre-ces-appels">Les 4 solutions pour ne plus perdre ces appels</a></li>
+      <li><a href="#comment-ca-marche-avec-replyit">Comment ça marche avec ReplyIt</a></li>
+      <li><a href="#questions-frequentes">Questions fréquentes</a></li>
+    </ol></nav>
+
+
+    <h2 id="l-hiver-tout-le-monde-appelle-en-meme-temps">L'hiver, tout le monde appelle en même temps</h2>
     <p>Dès les premiers froids, le téléphone ne s'arrête plus : chaudières qui ne redémarrent pas, pompes à chaleur en défaut, ballons d'eau chaude en panne. C'est précisément le moment où vous êtes le plus pris sur les chantiers, et donc celui où vous ratez le plus d'appels.</p>
     <p>Un client qui a froid ne laisse pas de message vocal. Il appelle le chauffagiste suivant.</p>
 
-    <h2>Ce que fait le client quand vous ne décrochez pas</h2>
+    <h2 id="ce-que-fait-le-client-quand-vous-ne-decrochez-pas">Ce que fait le client quand vous ne décrochez pas</h2>
     <p>La vitesse de réponse est décisive. Une étude publiée dans la Harvard Business Review (Oldroyd, McElheran et Elkington, 2011), menée auprès de 2 241 entreprises américaines, a montré que celles qui répondaient à une demande en moins d'une heure avaient <strong>près de 7 fois plus de chances</strong> de la transformer en vrai contact commercial que celles qui répondaient une heure plus tard. L'étude portait sur des demandes reçues en ligne, pas sur des appels d'artisans, mais la logique est la même : le premier qui répond a l'avantage.</p>
 
-    <h2>Panne aujourd'hui, client pour des années</h2>
+    <h2 id="panne-aujourd-hui-client-pour-des-annees">Panne aujourd'hui, client pour des années</h2>
     <p>L'entretien annuel d'une chaudière gaz est obligatoire. Un client que vous dépannez cet hiver peut devenir un contrat d'entretien chaque année, puis un remplacement de chaudière le jour venu. Perdre l'appel de panne, c'est parfois perdre le client pour longtemps.</p>
 
-    <h2>Le calcul : ce qu'un appel manqué vous coûte</h2>
+    <h2 id="le-calcul-ce-qu-un-appel-manque-vous-coute">Le calcul : ce qu'un appel manqué vous coûte</h2>
     <p>Selon le guide de prix d'Obat, un dépannage de chaudière se facture entre 200 et 500 € main-d'œuvre comprise, et un entretien annuel entre 90 et 210 € (140 à 250 € pour un contrat d'entretien).</p>
     <p>Exemple de mois d'hiver : <strong>2 appels manqués par jour</strong> sur 22 jours, dont un sur quatre aurait donné un dépannage à <strong>200 €</strong> :</p>
     <div class="calc">2 × 22 × 1/4 × 200 € = <strong>environ 2 200 € de dépannages perdus sur le mois</strong>, sans compter les contrats d'entretien qui auraient suivi.</div>
 
-    <h2>Les 4 solutions pour ne plus perdre ces appels</h2>
+    <h2 id="les-4-solutions-pour-ne-plus-perdre-ces-appels">Les 4 solutions pour ne plus perdre ces appels</h2>
     <div class="table-wrap">
     <table class="cmp">
       <thead><tr><th>Solution</th><th>Avantage</th><th>Limite</th></tr></thead>
@@ -189,14 +206,14 @@
     </table>
     </div>
 
-    <h2>Comment ça marche avec ReplyIt</h2>
+    <h2 id="comment-ca-marche-avec-replyit">Comment ça marche avec ReplyIt</h2>
     <p>ReplyIt vous fournit un <strong>numéro professionnel dédié</strong> qui fait sonner votre mobile. Si vous ne décrochez pas, la personne reçoit en quelques secondes un SMS à votre nom :</p>
     <div class="calc">« Thermi Services a bien reçu votre appel, on vous rappelle. Précisez votre demande : [lien] »</div>
     <p>Elle peut décrire son besoin via le lien. Vous retrouvez chaque appel manqué et chaque demande dans un tableau de bord, et vous rappelez quand vous avez les mains libres, en sachant déjà de quoi il s'agit. Vous mettez ce numéro là où arrivent les nouveaux clients (fiche Google, site, annonces, véhicule) ; vos clients habituels peuvent garder votre numéro actuel.</p>
     <p>L'abonnement coûte <strong>99 € HT par mois, sans engagement</strong>.</p>
     <p>Le client peut indiquer le modèle de sa chaudière et la panne via le lien : vous rappelez en sachant déjà de quoi il s'agit, et parfois avec la bonne pièce dans le camion.</p>
 
-    <h2>Questions fréquentes</h2>
+    <h2 id="questions-frequentes">Questions fréquentes</h2>
     <div class="faq">
     <h3>Que fait un client sans chauffage si le chauffagiste ne répond pas ?</h3>
     <p>Il appelle le suivant, puis le suivant, jusqu'à ce que quelqu'un réponde. En pleine saison de chauffe, celui qui répond en premier prend le dépannage, et souvent le contrat d'entretien qui suit.</p>

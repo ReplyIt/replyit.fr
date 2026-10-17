@@ -144,6 +144,12 @@
     .sources li{margin-bottom:.35rem}
     .related{margin-top:2rem}
     .related a{display:block;margin-bottom:.4rem}
+    .toc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin:0 0 1.75rem}
+    .toc strong{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem}
+    .toc ol{margin:0 0 0 1.2rem;padding:0}
+    .toc li{margin:.2rem 0;font-size:.95rem}
+    .toc a{color:var(--accent);font-weight:600;text-decoration:none}
+    h2[id]{scroll-margin-top:6rem}
   </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="94dc85ea-3dd8-49f5-b4e4-a91c437476cc" data-domains="replyit.fr"></script>
 </head>
@@ -161,21 +167,31 @@
 
     <div class="tldr"><strong>Réponse courte :</strong> un artisan sur chantier rate forcément des appels, et la plupart des gens qui tombent dans le vide appellent le concurrent suivant au lieu de laisser un message. Le coût se calcule simplement : appels manqués × part qui serait devenue cliente × panier moyen. Pour ne plus les perdre, le plus simple est de répondre automatiquement par SMS dès l'appel manqué.</div>
 
-    <h2>Pourquoi les artisans ratent autant d'appels</h2>
+    <nav class="toc" aria-label="Sommaire"><strong>Sommaire</strong><ol>
+      <li><a href="#pourquoi-les-artisans-ratent-autant-d-appels">Pourquoi les artisans ratent autant d'appels</a></li>
+      <li><a href="#le-client-ne-laisse-pas-de-message-il-appelle-le-suivant">Le client ne laisse pas de message, il appelle le suivant</a></li>
+      <li><a href="#comment-calculer-ce-que-vous-coutent-les-appels-manques">Comment calculer ce que vous coûtent les appels manqués</a></li>
+      <li><a href="#les-4-solutions-pour-ne-plus-perdre-ces-appels">Les 4 solutions pour ne plus perdre ces appels</a></li>
+      <li><a href="#comment-ca-marche-avec-replyit">Comment ça marche avec ReplyIt</a></li>
+      <li><a href="#questions-frequentes">Questions fréquentes</a></li>
+    </ol></nav>
+
+
+    <h2 id="pourquoi-les-artisans-ratent-autant-d-appels">Pourquoi les artisans ratent autant d'appels</h2>
     <p>Plombier, électricien, chauffagiste, carrossier : quand on est sur un chantier ou sous une voiture, on a rarement le téléphone à portée de main. Les mains prises, le bruit, un client en face, une intervention en cours. Ce n'est pas un défaut, c'est le métier.</p>
 
-    <h2>Le client ne laisse pas de message, il appelle le suivant</h2>
+    <h2 id="le-client-ne-laisse-pas-de-message-il-appelle-le-suivant">Le client ne laisse pas de message, il appelle le suivant</h2>
     <p>Quand ça ne décroche pas, beaucoup de gens raccrochent et appellent l'artisan suivant sur Google. La messagerie attend que le client fasse l'effort de laisser un message, et en cas d'urgence, il ne le fait pas.</p>
     <p>La vitesse de réponse est décisive. Une étude publiée dans la Harvard Business Review (Oldroyd, McElheran et Elkington, 2011), menée auprès de 2 241 entreprises américaines, a montré que celles qui répondaient à une demande en moins d'une heure avaient <strong>près de 7 fois plus de chances</strong> de la transformer en vrai contact commercial que celles qui répondaient une heure plus tard. L'étude portait sur des demandes reçues en ligne, pas sur des appels d'artisans, mais la logique est la même : le premier qui répond a l'avantage.</p>
 
-    <h2>Comment calculer ce que vous coûtent les appels manqués</h2>
+    <h2 id="comment-calculer-ce-que-vous-coutent-les-appels-manques">Comment calculer ce que vous coûtent les appels manqués</h2>
     <p>La formule est simple :</p>
     <div class="calc"><strong>appels manqués par jour × jours travaillés × part qui serait devenue cliente × panier moyen</strong></div>
     <p>Exemple : <strong>3 appels manqués par jour</strong> sur 22 jours, dont 30 % seraient devenus des clients, avec un panier moyen de <strong>150 €</strong> :</p>
     <div class="calc">3 × 22 × 30 % × 150 € = <strong>environ 2 970 € de chiffre d'affaires perdus chaque mois.</strong></div>
     <p>Pour estimer vos propres chiffres, regardez combien d'appels manqués s'affichent sur votre téléphone en fin de journée, et combien de ces numéros vous n'avez jamais réussi à recontacter. Et dans beaucoup de métiers, le panier moyen est bien plus élevé.</p>
 
-    <h2>Les 4 solutions pour ne plus perdre ces appels</h2>
+    <h2 id="les-4-solutions-pour-ne-plus-perdre-ces-appels">Les 4 solutions pour ne plus perdre ces appels</h2>
     <div class="table-wrap">
     <table class="cmp">
       <thead><tr><th>Solution</th><th>Avantage</th><th>Limite</th></tr></thead>
@@ -188,14 +204,14 @@
     </table>
     </div>
 
-    <h2>Comment ça marche avec ReplyIt</h2>
+    <h2 id="comment-ca-marche-avec-replyit">Comment ça marche avec ReplyIt</h2>
     <p>ReplyIt vous fournit un <strong>numéro professionnel dédié</strong> qui fait sonner votre mobile. Si vous ne décrochez pas, la personne reçoit en quelques secondes un SMS à votre nom :</p>
     <div class="calc">« Plomberie Martin a bien reçu votre appel, on vous rappelle. Précisez votre demande : [lien] »</div>
     <p>Elle peut décrire son besoin via le lien. Vous retrouvez chaque appel manqué et chaque demande dans un tableau de bord, et vous rappelez quand vous avez les mains libres, en sachant déjà de quoi il s'agit. Vous mettez ce numéro là où arrivent les nouveaux clients (fiche Google, site, annonces, véhicule) ; vos clients habituels peuvent garder votre numéro actuel.</p>
     <p>L'abonnement coûte <strong>99 € HT par mois, sans engagement</strong>.</p>
     <p>Pour aller plus loin par métier : <a href="/blog/plombier-appels-manques">plombier</a>, <a href="/blog/serrurier-appels-manques">serrurier</a>, <a href="/blog/chauffagiste-appels-manques">chauffagiste</a>, <a href="/blog/electricien-appels-manques">électricien</a>, <a href="/blog/garage-carrosserie-appels-manques">garage et carrosserie</a>.</p>
 
-    <h2>Questions fréquentes</h2>
+    <h2 id="questions-frequentes">Questions fréquentes</h2>
     <div class="faq">
     <h3>Combien coûte un appel manqué à un artisan ?</h3>
     <p>Multipliez le nombre d'appels manqués par jour par le nombre de jours travaillés, par la part qui serait devenue cliente et par votre panier moyen. Avec 3 appels manqués par jour, 30 % de transformation et 150 € de panier moyen, cela fait environ 2 970 € par mois.</p>

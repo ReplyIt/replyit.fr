@@ -144,6 +144,12 @@
     .sources li{margin-bottom:.35rem}
     .related{margin-top:2rem}
     .related a{display:block;margin-bottom:.4rem}
+    .toc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin:0 0 1.75rem}
+    .toc strong{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem}
+    .toc ol{margin:0 0 0 1.2rem;padding:0}
+    .toc li{margin:.2rem 0;font-size:.95rem}
+    .toc a{color:var(--accent);font-weight:600;text-decoration:none}
+    h2[id]{scroll-margin-top:6rem}
   </style>
   <script defer src="https://cloud.umami.is/script.js" data-website-id="94dc85ea-3dd8-49f5-b4e4-a91c437476cc" data-domains="replyit.fr"></script>
 </head>
@@ -161,21 +167,31 @@
 
     <div class="tldr"><strong>Réponse courte :</strong> en serrurerie, la personne qui appelle est souvent bloquée dehors et appelle le premier serrurier qui répond. Si vous êtes en intervention, un SMS automatique envoyé dans les secondes qui suivent l'appel manqué lui montre que vous l'avez vue et que vous la rappelez, pour qu'elle ne passe pas au numéro suivant.</div>
 
-    <h2>Le serrurier, le métier où l'appel n'attend pas</h2>
+    <nav class="toc" aria-label="Sommaire"><strong>Sommaire</strong><ol>
+      <li><a href="#le-serrurier-le-metier-ou-l-appel-n-attend-pas">Le serrurier, le métier où l'appel n'attend pas</a></li>
+      <li><a href="#ce-que-fait-le-client-quand-vous-ne-decrochez-pas">Ce que fait le client quand vous ne décrochez pas</a></li>
+      <li><a href="#le-calcul-ce-qu-un-appel-manque-vous-coute">Le calcul : ce qu'un appel manqué vous coûte</a></li>
+      <li><a href="#les-4-solutions-pour-ne-plus-perdre-ces-appels">Les 4 solutions pour ne plus perdre ces appels</a></li>
+      <li><a href="#comment-ca-marche-avec-replyit">Comment ça marche avec ReplyIt</a></li>
+      <li><a href="#questions-frequentes">Questions fréquentes</a></li>
+    </ol></nav>
+
+
+    <h2 id="le-serrurier-le-metier-ou-l-appel-n-attend-pas">Le serrurier, le métier où l'appel n'attend pas</h2>
     <p>Porte claquée, clé perdue, serrure forcée après un cambriolage : la personne qui vous appelle est <strong>dehors, ou chez elle sans pouvoir fermer</strong>. Elle ne laisse pas de message. Elle fait défiler les résultats sur Google et appelle le suivant.</p>
     <p>Et pendant ce temps, vous êtes sur une autre ouverture de porte, les deux mains occupées.</p>
 
-    <h2>Ce que fait le client quand vous ne décrochez pas</h2>
+    <h2 id="ce-que-fait-le-client-quand-vous-ne-decrochez-pas">Ce que fait le client quand vous ne décrochez pas</h2>
     <p>La vitesse de réponse est décisive. Une étude publiée dans la Harvard Business Review (Oldroyd, McElheran et Elkington, 2011), menée auprès de 2 241 entreprises américaines, a montré que celles qui répondaient à une demande en moins d'une heure avaient <strong>près de 7 fois plus de chances</strong> de la transformer en vrai contact commercial que celles qui répondaient une heure plus tard. L'étude portait sur des demandes reçues en ligne, pas sur des appels d'artisans, mais la logique est la même : le premier qui répond a l'avantage.</p>
     <p>En serrurerie, c'est encore plus net : la personne bloquée dehors ne compare pas, elle prend le premier qui répond. Elle se méfie aussi des tarifs abusifs dont la presse parle régulièrement, et un message clair à votre nom la rassure plus qu'un répondeur anonyme.</p>
 
-    <h2>Le calcul : ce qu'un appel manqué vous coûte</h2>
+    <h2 id="le-calcul-ce-qu-un-appel-manque-vous-coute">Le calcul : ce qu'un appel manqué vous coûte</h2>
     <p>Selon le guide de prix d'Obat, une ouverture de porte claquée se facture autour de 70 à 90 €, une porte blindée 100 à 150 €, et un remplacement de serrure 110 à 190 €, avec une majoration d'environ 30 % la nuit, le week-end et les jours fériés.</p>
     <p>Exemple : <strong>1 appel manqué par jour</strong> sur 22 jours ouvrés, dont un sur trois aurait débouché sur un dépannage à <strong>150 €</strong> :</p>
     <div class="calc">1 × 22 × 1/3 × 150 € = <strong>environ 1 100 € de dépannages partis chez un concurrent chaque mois.</strong></div>
     <p>Remplacez par vos propres chiffres : le principe reste le même. Et si vous payez de la publicité pour être appelé, chaque appel manqué est un appel que vous avez déjà payé.</p>
 
-    <h2>Les 4 solutions pour ne plus perdre ces appels</h2>
+    <h2 id="les-4-solutions-pour-ne-plus-perdre-ces-appels">Les 4 solutions pour ne plus perdre ces appels</h2>
     <div class="table-wrap">
     <table class="cmp">
       <thead><tr><th>Solution</th><th>Avantage</th><th>Limite</th></tr></thead>
@@ -189,13 +205,13 @@
     </div>
     <p>Pour un serrurier seul, le SMS automatique a un avantage décisif : il part aussi la nuit et le week-end, quand les urgences sont nombreuses et que vous ne pouvez pas toujours répondre.</p>
 
-    <h2>Comment ça marche avec ReplyIt</h2>
+    <h2 id="comment-ca-marche-avec-replyit">Comment ça marche avec ReplyIt</h2>
     <p>ReplyIt vous fournit un <strong>numéro professionnel dédié</strong> qui fait sonner votre mobile. Si vous ne décrochez pas, la personne reçoit en quelques secondes un SMS à votre nom :</p>
     <div class="calc">« Serrurerie Dubois a bien reçu votre appel, on vous rappelle. Précisez votre demande : [lien] »</div>
     <p>Elle peut décrire son besoin via le lien. Vous retrouvez chaque appel manqué et chaque demande dans un tableau de bord, et vous rappelez quand vous avez les mains libres, en sachant déjà de quoi il s'agit. Vous mettez ce numéro là où arrivent les nouveaux clients (fiche Google, site, annonces, véhicule) ; vos clients habituels peuvent garder votre numéro actuel.</p>
     <p>L'abonnement coûte <strong>99 € HT par mois, sans engagement</strong>.</p>
 
-    <h2>Questions fréquentes</h2>
+    <h2 id="questions-frequentes">Questions fréquentes</h2>
     <div class="faq">
     <h3>Un client bloqué dehors rappelle-t-il un serrurier qui n'a pas décroché ?</h3>
     <p>Très rarement : il appelle le serrurier suivant sur Google. Lui montrer en quelques secondes que sa demande a été vue est le meilleur moyen de le garder.</p>
