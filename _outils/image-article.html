@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!-- Gabarit de l'image d'illustration des articles du blog (1200 x 630).
+     Rendu par _outils/image-article.py. Dossier préfixé « _ » : non publié par GitHub Pages (Jekyll). -->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face{font-family:PJS;font-weight:600;src:url(polices/plus-jakarta-sans-latin-600-normal.woff2)}
+  @font-face{font-family:PJS;font-weight:700;src:url(polices/plus-jakarta-sans-latin-700-normal.woff2)}
+  @font-face{font-family:PJS;font-weight:800;src:url(polices/plus-jakarta-sans-latin-800-normal.woff2)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1200px;height:630px;overflow:hidden}
+  body{font-family:PJS,Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;position:relative}
+  .grid{position:absolute;inset:0;background-image:radial-gradient(#cbd5e1 1.2px,transparent 1.2px);background-size:26px 26px;opacity:.55}
+  .tri{position:absolute;top:0;left:0;right:0;height:10px;display:flex}.tri span{flex:1}
+  .b{background:#002395}.w{background:#fff}.r{background:#ed2939}
+  .left{position:absolute;left:70px;top:70px;width:600px;height:490px;display:flex;flex-direction:column}
+  .kicker{display:inline-block;align-self:flex-start;font-size:22px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0369a1;background:#e0f2fe;padding:8px 18px;border-radius:999px}
+  .title{margin-top:28px;font-weight:800;letter-spacing:-.025em;line-height:1.12;font-size:54px}
+  .brand{margin-top:auto;font-size:30px;font-weight:800;letter-spacing:-.03em}.brand span{color:#0369a1}
+  .brand small{display:block;font-size:20px;font-weight:600;color:#475569;letter-spacing:0;margin-top:4px}
+  .phone{position:absolute;right:80px;top:48px;width:330px;height:640px;border-radius:52px;background:#0f172a;padding:14px;box-shadow:0 30px 60px rgba(15,23,42,.25)}
+  .screen{width:100%;height:100%;border-radius:40px;background:linear-gradient(160deg,#0c4a6e,#0369a1 55%,#38bdf8);position:relative;overflow:hidden}
+  .notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:110px;height:30px;border-radius:20px;background:#0f172a}
+  .time{position:absolute;top:70px;width:100%;text-align:center;color:#fff;font-size:72px;font-weight:700;letter-spacing:-.02em}
+  .date{position:absolute;top:160px;width:100%;text-align:center;color:#e0f2fe;font-size:20px;font-weight:600}
+  .notif{position:absolute;left:14px;right:14px;top:230px;background:rgba(255,255,255,.96);border-radius:22px;padding:16px 18px}
+  .nh{display:flex;align-items:center;gap:10px;font-size:15px;color:#475569;font-weight:600}
+  .ic{width:28px;height:28px;border-radius:8px;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .nh .t{margin-left:auto;font-weight:600}
+  .nt{margin-top:10px;font-size:18px;font-weight:800;color:#0f172a}
+  .nb{margin-top:4px;font-size:17px;line-height:1.35;color:#1e293b;font-weight:600}
+  .nb a{color:#0369a1}
+  .missed{position:absolute;left:14px;right:14px;top:420px;background:rgba(255,255,255,.75);border-radius:22px;padding:14px 18px;font-size:15px;color:#334155;font-weight:600}
+  .missed b{display:block;color:#b91c1c;font-size:16px;margin-bottom:2px}
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="tri"><span class="b"></span><span class="w"></span><span class="r"></span></div>
+  <div class="left">
+    <div class="kicker" id="kicker">Métier</div>
+    <div class="title" id="title">Titre</div>
+    <div class="brand">Reply<span>It</span><small>SMS automatique après un appel manqué</small></div>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="notch"></div>
+    <div class="time">10:42</div>
+    <div class="date">Téléphone de votre client</div>
+    <div class="notif">
+      <div class="nh"><div class="ic">✉</div>Messages<span class="t">à l'instant</span></div>
+      <div class="nb"><span id="company">Entreprise</span> a bien reçu votre appel, on vous rappelle. Précisez votre demande : <a>replyit.fr/r</a></div>
+    </div>
+    <div class="missed"><b>Appel sans réponse</b>il y a quelques secondes</div>
+  </div></div>
+  <script>
+    const p = new URLSearchParams(location.search);
+    document.getElementById('kicker').textContent = p.get('kicker') || '';
+    document.getElementById('title').textContent = p.get('title') || '';
+    document.getElementById('company').textContent = p.get('company') || '';
+    // Ajuste la taille du titre pour qu'il tienne dans la colonne
+    const t = document.getElementById('title'); let s = 58;
+    while (t.scrollHeight > 300 && s > 34) { s -= 2; t.style.fontSize = s + 'px'; }
+  </script>
+</body>
+</html>
