@@ -20,7 +20,7 @@
   </url>
   <url>
     <loc>https://replyit.fr/blog/</loc>
-    <lastmod>2026-10-27</lastmod>
+    <lastmod>2026-10-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -117,6 +117,12 @@
   <url>
     <loc>https://replyit.fr/blog/sms-automatique-appel-manque</loc>
     <lastmod>2026-10-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://replyit.fr/blog/publicite-google-artisan-appels</loc>
+    <lastmod>2026-10-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
