@@ -20,7 +20,7 @@
   </url>
   <url>
     <loc>https://replyit.fr/blog/</loc>
-    <lastmod>2026-11-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -207,6 +207,12 @@
   <url>
     <loc>https://replyit.fr/blog/artisan-seul-sans-secretaire</loc>
     <lastmod>2026-11-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://replyit.fr/blog/carreleur-appels-manques</loc>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
